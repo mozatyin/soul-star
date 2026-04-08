@@ -422,7 +422,7 @@ def build_char(raw):
     return {'name':raw['name'],'title':raw['title'],
             'nebs':nebs,'surf':surf,'constellations':consts}
 
-def build_epoch(universe, intensities, ecology_elements, ecology_positions, ecology_pct=None):
+def build_epoch(universe, intensities, ecology_pct, ecology_elements, ecology_positions):
     d_raw = [dict(d,intensity=i) for d,i in zip(universe['domains'],intensities['domain_i'])]
     r_raw = [dict(r,influence=v) for r,v in zip(universe['relations'],intensities['rel_i'])]
     p_raw = [dict(p,depth=dd)   for p,dd in zip(universe['patterns'],intensities['pat_d'])]
