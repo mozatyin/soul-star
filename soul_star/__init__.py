@@ -1,1 +1,5 @@
-# soul_star package — placeholder, filled in by Task 3
+"""Soul Star Map — reusable generation package."""
+
+from ._api import generate_soul_star
+
+__all__ = ['generate_soul_star']
