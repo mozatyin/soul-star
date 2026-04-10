@@ -54,10 +54,11 @@ def _draw_depth_stars(canvas_arr, x_offset, panel_w, panel_h, frame_idx,
     cinema_p   : dict        CINEMA_P parameters
     rng_seed   : int         base RNG seed for this panel
     """
-    n_layers = cinema_p['depth_layers']
     star_counts = cinema_p['depth_star_counts']
     alphas = cinema_p['depth_alphas']
     radii = cinema_p['depth_radii']
+    # Clamp to minimum array length to guard against director-adjusted mismatches
+    n_layers = min(cinema_p['depth_layers'], len(star_counts), len(alphas), len(radii))
     parallax_amp = cinema_p['parallax_amp']
     panel_h_full = cinema_p['cinema_h']
 
