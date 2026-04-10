@@ -10,7 +10,6 @@ stars, nebula blobs, lens flare, vignette, film grain, and color grading.
 import math
 import numpy as np
 from PIL import Image, ImageEnhance
-from scipy.ndimage import gaussian_filter
 
 # ── Module-level constants ─────────────────────────────────────────────────
 CINEMA_P = {
@@ -128,76 +127,33 @@ def _draw_depth_stars(canvas_arr, x_offset, panel_w, panel_h, frame_idx,
                     canvas_arr[py, px, 2] = int(min(255, existing[2] + blend * b_val * 255))
 
 
-def _draw_side_nebula(canvas_arr, x_offset, panel_w, panel_h, aurora_val,
-                      cinema_p, rng_seed):
-    """
-    Draw 1-2 faint soft Gaussian blobs in the panel region.
+def _make_nebula_overlay(panel_w, panel_h, aurora_val, cinema_p, rng_seed):
+    """Return float32 (H, W, 3) nebula overlay in [0, 1]. Vectorized."""
+    alpha_scale = cinema_p['side_nebula_alpha'] * cinema_p['side_aurora_mult'] * aurora_val
+    if alpha_scale < 0.01:
+        return np.zeros((panel_h, panel_w, 3), dtype=np.float32)
 
-    Intensity = cinema_p['side_nebula_alpha'] * cinema_p['side_aurora_mult'] * aurora_val
-    Colors lean cool-blue/purple. Skipped if aurora_val < 0.05.
+    rng = np.random.RandomState(rng_seed + 99)
+    n_blobs = rng.randint(1, 3)
+    overlay = np.zeros((panel_h, panel_w, 3), dtype=np.float32)
+    Y, X = np.mgrid[0:panel_h, 0:panel_w]
 
-    Parameters
-    ----------
-    canvas_arr : np.ndarray  shape (H, W, 3) uint8, modified in-place
-    x_offset   : int         left edge of panel in canvas
-    panel_w    : int         panel width
-    panel_h    : int         panel height
-    aurora_val : float       aurora intensity [0..1]
-    cinema_p   : dict        CINEMA_P parameters
-    rng_seed   : int         RNG seed for this panel's nebula
-    """
-    if aurora_val < 0.05:
-        return
+    for _ in range(n_blobs):
+        cx = rng.uniform(0.2, 0.8) * panel_w
+        cy = rng.uniform(0.2, 0.8) * panel_h
+        rx = rng.uniform(0.15, 0.4) * panel_w
+        ry = rng.uniform(0.1, 0.3) * panel_h
+        col = np.array([
+            rng.uniform(0.3, 0.6),
+            rng.uniform(0.4, 0.8),
+            rng.uniform(0.6, 1.0)
+        ], dtype=np.float32)
+        d2 = ((X - cx) / rx) ** 2 + ((Y - cy) / ry) ** 2
+        mask = d2 < 1.0
+        intensity = np.where(mask, alpha_scale * (1 - d2), 0).astype(np.float32)
+        overlay += intensity[:, :, np.newaxis] * col
 
-    intensity = (cinema_p['side_nebula_alpha']
-                 * cinema_p['side_aurora_mult']
-                 * aurora_val)
-
-    rng = np.random.RandomState(rng_seed + 999)
-    n_blobs = rng.randint(1, 3)  # 1 or 2 blobs
-
-    # Cool-blue/purple nebula color palette
-    nebula_colors = [
-        (0.20, 0.30, 0.80),  # deep blue
-        (0.35, 0.15, 0.70),  # purple
-        (0.10, 0.40, 0.75),  # cyan-blue
-        (0.25, 0.20, 0.65),  # indigo
-    ]
-
-    for blob_i in range(n_blobs):
-        # Blob center within panel
-        bx = rng.uniform(panel_w * 0.2, panel_w * 0.8)
-        by = rng.uniform(panel_h * 0.15, panel_h * 0.85)
-        sigma_x = rng.uniform(panel_w * 0.10, panel_w * 0.30)
-        sigma_y = rng.uniform(panel_h * 0.08, panel_h * 0.25)
-        color = nebula_colors[rng.randint(0, len(nebula_colors))]
-
-        # Iterate over blob region with step=2 for speed
-        x_min = max(0, int(bx - 3 * sigma_x))
-        x_max = min(panel_w, int(bx + 3 * sigma_x) + 1)
-        y_min = max(0, int(by - 3 * sigma_y))
-        y_max = min(panel_h, int(by + 3 * sigma_y) + 1)
-
-        for py in range(y_min, y_max, 2):
-            dy = (py - by) / (sigma_y + 1e-9)
-            for px_local in range(x_min, x_max, 2):
-                dx = (px_local - bx) / (sigma_x + 1e-9)
-                gauss = math.exp(-0.5 * (dx * dx + dy * dy))
-                blend = intensity * gauss
-                if blend < 0.005:
-                    continue
-
-                px_canvas = px_local + x_offset
-                if px_canvas < x_offset or px_canvas >= x_offset + panel_w:
-                    continue
-
-                existing = canvas_arr[py, px_canvas]
-                canvas_arr[py, px_canvas, 0] = int(
-                    min(255, existing[0] + blend * color[0] * 255))
-                canvas_arr[py, px_canvas, 1] = int(
-                    min(255, existing[1] + blend * color[1] * 255))
-                canvas_arr[py, px_canvas, 2] = int(
-                    min(255, existing[2] + blend * color[2] * 255))
+    return np.clip(overlay, 0, 1)
 
 
 def _apply_vignette(img_arr, strength):
@@ -336,27 +292,29 @@ def composite_cinema_frame(soul_frame_path, frame_idx, n_frames,
     soul_arr = np.array(soul_img)
     canvas[:, soul_x:soul_x + soul_w, :] = soul_arr
 
-    # 3. Left panel: depth stars + nebula
+    # 3. Left panel: depth stars + nebula overlay
     _draw_depth_stars(
         canvas, x_offset=0, panel_w=panel_w, panel_h=cinema_h,
         frame_idx=frame_idx, n_frames=n_frames, cinema_p=cinema_p,
         rng_seed=42
     )
-    _draw_side_nebula(
-        canvas, x_offset=0, panel_w=panel_w, panel_h=cinema_h,
-        aurora_val=aurora_val, cinema_p=cinema_p, rng_seed=42
+    neb_left = _make_nebula_overlay(panel_w, cinema_h, aurora_val, cinema_p, 42)
+    canvas_float = canvas.astype(float)
+    canvas_float[:, :panel_w] = np.clip(
+        canvas_float[:, :panel_w] + neb_left * 255, 0, 255
     )
 
-    # 4. Right panel: depth stars + nebula (different rng_seed)
+    # 4. Right panel: depth stars + nebula overlay (different rng_seed)
     _draw_depth_stars(
         canvas, x_offset=soul_x + soul_w, panel_w=panel_w, panel_h=cinema_h,
         frame_idx=frame_idx, n_frames=n_frames, cinema_p=cinema_p,
         rng_seed=137
     )
-    _draw_side_nebula(
-        canvas, x_offset=soul_x + soul_w, panel_w=panel_w, panel_h=cinema_h,
-        aurora_val=aurora_val, cinema_p=cinema_p, rng_seed=137
+    neb_right = _make_nebula_overlay(panel_w, cinema_h, aurora_val, cinema_p, 137 + 1000)
+    canvas_float[:, soul_x + soul_w:] = np.clip(
+        canvas_float[:, soul_x + soul_w:] + neb_right * 255, 0, 255
     )
+    canvas = canvas_float.astype(np.uint8)
 
     # 5. Lens flare at junction edges x=420 and x=1499
     flare_intensity = cinema_p['lens_flare_intensity'] * aurora_val

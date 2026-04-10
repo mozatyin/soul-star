@@ -118,18 +118,20 @@ def apply_engine_params_to_file(engine_p: dict) -> None:
         return
 
     for key, (orig, new) in changed.items():
-        # Match the key in P dict: 'key':value or 'key': value
-        pattern = rf"('{re.escape(key)}'\s*:\s*){re.escape(str(orig))}"
-        # Format new value same as original (int or float with same decimal places)
+        # Read the literal value string from file (preserves trailing zeros like 0.260)
+        scan = re.search(rf"'{re.escape(key)}'\s*:\s*([0-9.eE+\-]+)", content)
+        if not scan:
+            print(f"  _engine.py: could not find '{key}' in file, skipping")
+            continue
+        file_literal = scan.group(1)
+        pattern = rf"('{re.escape(key)}'\s*:\s*){re.escape(file_literal)}"
         if isinstance(orig, int):
             new_str = str(int(round(new)))
         else:
-            # Match decimal precision of original
-            orig_str = str(orig)
-            decimals = len(orig_str.split('.')[-1]) if '.' in orig_str else 3
+            decimals = len(file_literal.split('.')[-1]) if '.' in file_literal else 3
             new_str = f"{new:.{decimals}f}"
         content = re.sub(pattern, rf"\g<1>{new_str}", content)
-        print(f"  _engine.py P['{key}']: {orig} -> {new_str}")
+        print(f"  _engine.py P['{key}']: {file_literal} → {new_str}")
 
     engine_file.write_text(content)
     print(f"  _engine.py updated ({len(changed)} params)")
