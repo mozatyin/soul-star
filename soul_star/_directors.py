@@ -284,7 +284,11 @@ def ask_director(director: dict, spec: Any, cinema_p: dict, engine_p: dict,
     -------
     DirectorFeedback
     """
-    client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
+    api_key = os.environ['ANTHROPIC_API_KEY']
+    client_kwargs = {'api_key': api_key}
+    if api_key.startswith('sk-or-'):
+        client_kwargs['base_url'] = 'https://openrouter.ai/api'
+    client = anthropic.Anthropic(**client_kwargs)
 
     prompt_text = _build_prompt(
         director, spec, cinema_p, engine_p, iteration, character_desc
@@ -318,7 +322,7 @@ def ask_director(director: dict, spec: Any, cinema_p: dict, engine_p: dict,
     })
 
     response = client.messages.create(
-        model='claude-opus-4-5',
+        model='anthropic/claude-opus-4-6',
         max_tokens=1024,
         messages=[
             {
