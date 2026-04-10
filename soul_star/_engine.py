@@ -31,12 +31,12 @@ REL_THRESH    = 7.5
 PAT_THRESH    = 7.0
 
 P = {
-    'bg_n':2000, 'bg_maxr':0.260, 'bg_alpha':0.290, 'bg_band':1.327,
-    'neb_gamma':2.642, 'neb_amax':0.76,  'neb_blur_k':0.14,
-    'neb_amult':9.5,   'neb_n_oct':3.0,  'neb_env_n':0.310,
+    'bg_n':3411, 'bg_maxr':0.316, 'bg_alpha':0.483, 'bg_band':2.088,
+    'neb_gamma':2.967, 'neb_amax':0.76,  'neb_blur_k':0.11,
+    'neb_amult':10.3,   'neb_n_oct':4.5,  'neb_env_n':0.475,
     'cl_alpha':0.430,
     'sf_outer_r':0.340, 'sf_alpha':0.960, 'sf_lsz':19.0,
-    'sf_glow':7.5, 'sf_ray':9.5,
+    'sf_glow':11.2, 'sf_ray':9.5,
     'cn_soul_r':0.118, 'cn_soul_a':0.870, 'cn_reg_a':0.620,
 }
 
