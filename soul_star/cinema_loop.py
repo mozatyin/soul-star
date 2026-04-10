@@ -27,6 +27,11 @@ import time
 from pathlib import Path
 from typing import List
 
+# Ensure soul-star root is on sys.path (needed when running as python3 soul_star/cinema_loop.py)
+_ROOT = str(Path(__file__).resolve().parent.parent)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
 
 # ── Spec loader ────────────────────────────────────────────────────────────
 
