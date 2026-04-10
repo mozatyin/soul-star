@@ -1,5 +1,3 @@
 """Soul Star Map — reusable generation package."""
-
-from ._api import generate_soul_star
-
-__all__ = ['generate_soul_star']
+from ._api import generate_soul_star, generate_cinema_soul_star
+__all__ = ['generate_soul_star', 'generate_cinema_soul_star']

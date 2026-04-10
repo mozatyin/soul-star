@@ -120,3 +120,99 @@ def generate_soul_star(spec, output_dir):
     print(f"  → {gif_path}")
     print(f"\n  Total: {(time.time()-t0)/60:.1f} min")
     return gif_path
+
+
+def generate_cinema_soul_star(spec, output_dir, cinema_p=None, fps=24):
+    """
+    Generate cinematic 1920×1080 MP4 soul star video for any character.
+
+    Renders each frame at 1080×1080 (soul_fig_sz from cinema_p), composites
+    onto a 1920×1080 cinema canvas via _cinema.composite_cinema_frame(), then
+    exports to MP4 via _video.make_mp4().
+
+    Parameters
+    ----------
+    spec       : dict  — same schema as generate_soul_star
+    output_dir : str | Path
+    cinema_p   : dict | None  — CINEMA_P overrides (None = use defaults)
+    fps        : int  — video frame rate, default 24
+
+    Returns
+    -------
+    Path — path to the .mp4 file
+    """
+    import time as _time
+    from . import _cinema as C
+    from . import _video as V
+
+    cp = {**C.CINEMA_P}
+    if cinema_p:
+        cp.update(cinema_p)
+
+    out = Path(output_dir).expanduser()
+    out.mkdir(parents=True, exist_ok=True)
+
+    N       = int(spec.get('n_frames', 60))
+    W       = float(spec.get('W', 26.0))
+    H       = float(spec.get('H', 26.0))
+    DPI     = 100
+    soul_fig_sz = cp['soul_fig_sz']   # 10.8 → 1080px at DPI=100
+
+    universe = {
+        'name':      spec['name'],
+        'title':     spec['title'],
+        'domains':   spec['domains'],
+        'relations': spec['relations'],
+        'patterns':  spec['patterns'],
+    }
+    ecology_elements = spec.get('ecology', [])
+    bg_temp_curve    = spec['bg_temp_curve']
+    aurora_curve     = spec['aurora_curve']
+    story_beats      = spec['story_beats']
+    lifecycle_label  = spec.get('lifecycle_label')
+
+    print("═" * 62)
+    print(f"  Soul Star Cinema — {spec['name']}")
+    print(f"  {N} frames → 1920×1080 MP4 @ {fps}fps")
+    print("═" * 62)
+
+    fixed_pos = E.precompute_positions(universe, W, H)
+    ecology_positions = E.precompute_ecology_positions(
+        universe, N, ecology_elements, fixed_pos, W, H, _ERNG, MIN_ECO_GAP
+    )
+
+    t0 = _time.time()
+    soul_dir = out / '_soul_frames'
+    soul_dir.mkdir(exist_ok=True)
+    cinema_frames = []
+
+    for fi in range(N):
+        pct = fi * 100.0 / max(N - 1, 1)
+        intensities = _epoch_intensities(spec, pct)
+        char = E.build_epoch(universe, intensities, pct, ecology_elements, ecology_positions)
+
+        soul_path = soul_dir / f"soul_{fi:03d}.png"
+        E.render_frame(
+            char, fixed_pos, pct, fi, soul_path,
+            soul_fig_sz, DPI, ecology_positions,
+            W, H, bg_temp_curve, aurora_curve,
+            ecology_elements, story_beats, lifecycle_label,
+        )
+
+        bg_temp  = E.lerp(bg_temp_curve, pct)
+        aurora_v = E.lerp(aurora_curve, pct)
+        cinema_img = C.composite_cinema_frame(
+            soul_path, fi, N, cp, bg_temp, aurora_v
+        )
+        cinema_frames.append(cinema_img)
+
+        beat_name = min(story_beats, key=lambda b: abs(b[0] - pct))[1]
+        print(f"  [{fi:02d}/{N-1}] {pct:5.1f}% | {beat_name} | cinema OK")
+
+    mp4_name = spec.get('gif_name', f"{spec['title']}.gif").replace('.gif', '.mp4')
+    mp4_path = out / mp4_name
+    print(f"\n  Exporting MP4 ({N} frames @ {fps}fps)…")
+    V.make_mp4(cinema_frames, mp4_path, fps=fps)
+    print(f"  → {mp4_path}")
+    print(f"  Total: {(_time.time()-t0)/60:.1f} min")
+    return mp4_path
