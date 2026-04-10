@@ -119,7 +119,7 @@ def apply_engine_params_to_file(engine_p: dict) -> None:
 
     for key, (orig, new) in changed.items():
         # Match the key in P dict: 'key':value or 'key': value
-        pattern = rf"('{re.escape(key)}'\\s*:\\s*){re.escape(str(orig))}"
+        pattern = rf"('{re.escape(key)}'\s*:\s*){re.escape(str(orig))}"
         # Format new value same as original (int or float with same decimal places)
         if isinstance(orig, int):
             new_str = str(int(round(new)))
@@ -213,8 +213,7 @@ def run_cinema_loop(
     print(f"{'='*72}\n")
 
     for iteration in range(1, max_iters + 1):
-        is_final_iter = (iteration == max_iters)
-        n_frames = 60 if is_final_iter else 20
+        n_frames = 20
 
         print(f"\n--- Iteration {iteration}/{max_iters} ({n_frames} frames) ---")
 
