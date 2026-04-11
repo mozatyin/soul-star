@@ -31,13 +31,13 @@ REL_THRESH    = 7.5
 PAT_THRESH    = 7.0
 
 P = {
-    'bg_n':6880,   'bg_maxr':0.166, 'bg_alpha':0.510, 'bg_band':2.095,
-    'neb_gamma':2.902, 'neb_amax':0.817,  'neb_blur_k':0.110,
-    'neb_amult':13.653,   'neb_n_oct':4.474,  'neb_env_n':0.481,
-    'cl_alpha':0.498,
-    'sf_outer_r':0.420, 'sf_alpha':1.000, 'sf_lsz':5.5,
-    'sf_glow':11.01, 'sf_ray':9.497,
-    'cn_soul_r':0.26, 'cn_soul_a':0.960, 'cn_reg_a':0.900,
+    'bg_n':6880,   'bg_maxr':0.176, 'bg_alpha':0.554, 'bg_band':1.968,
+    'neb_gamma':2.902, 'neb_amax':0.817,  'neb_blur_k':0.100,
+    'neb_amult':18.329,   'neb_n_oct':4.474,  'neb_env_n':0.481,
+    'cl_alpha':0.537,
+    'sf_outer_r':0.420, 'sf_alpha':1.000, 'sf_lsz':14.0,
+    'sf_glow':11.01, 'sf_ray':8.356,
+    'cn_soul_r':0.28, 'cn_soul_a':0.624, 'cn_reg_a':0.900,
 }
 
 TMPL = {
@@ -1249,10 +1249,10 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
                 lbl_txt,soul_col=soul[name]
                 draw_star_small(ax,sx_c,sy_c,soul_r,soul_col,p['cn_soul_a'],fig_sz,z=5,W=W)
                 off=soul_r*3.5+0.10
-                tx,ty,ha,va=find_label_pos(sx_c,sy_c,off,7.5,len(lbl_txt),fig_sz,cst_placed,W,H)
-                ax.text(tx,ty,lbl_txt,fontsize=7.5,color=soul_col,alpha=0.85,
+                tx,ty,ha,va=find_label_pos(sx_c,sy_c,off,11.0,len(lbl_txt),fig_sz,cst_placed,W,H)
+                ax.text(tx,ty,lbl_txt,fontsize=11.0,color=soul_col,alpha=0.85,
                        ha=ha,va=va,fontstyle='italic',fontweight='light',zorder=5,
-                       path_effects=[pe.withStroke(linewidth=2.5,foreground='#080808')])
+                       path_effects=[pe.withStroke(linewidth=3.0,foreground='#080808')])
             else:
                 draw_star_small(ax,sx_c,sy_c,reg_r,spec_col,p['cn_reg_a']*0.80,fig_sz,z=4.8,W=W)
                 sr=reg_r*2.8*0.5
@@ -1260,10 +1260,10 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
         all_x=[v[0] for v in coords.values()]; all_y=[v[1] for v in coords.values()]
         lbl_cx=sum(all_x)/len(all_x); lbl_cy=sum(all_y)/len(all_y)
         tx_n,ty_n,ha_n,va_n=find_label_pos(lbl_cx,lbl_cy,soul_r*2.5+0.15,
-                                            9.0,len(const['name_cn']),fig_sz,cst_placed,W,H)
-        ax.text(tx_n,ty_n,const['name_cn'],fontsize=9.0,color='#8090c8',alpha=0.65,
+                                            13.0,len(const['name_cn']),fig_sz,cst_placed,W,H)
+        ax.text(tx_n,ty_n,const['name_cn'],fontsize=13.0,color='#8090c8',alpha=0.75,
                ha=ha_n,va=va_n,fontweight='light',zorder=4.5,
-               path_effects=[pe.withStroke(linewidth=2.5,foreground='#000406')])
+               path_effects=[pe.withStroke(linewidth=3.0,foreground='#000406')])
 
     # ── Surface stars (FIXED positions from fixed_pos) ────────────
     sf_r=p['sf_outer_r']
@@ -1340,10 +1340,10 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
                 draw_star_small(ax, sx_e, sy_e, soul_r, soul_col,
                                 p['cn_soul_a'], fig_sz, z=5, W=W)
                 off = soul_r*3.5+0.10
-                tx,ty,ha,va = find_label_pos(sx_e,sy_e,off,7.5,len(lbl_txt),fig_sz,cst_placed,W,H)
-                ax.text(tx,ty,lbl_txt,fontsize=7.5,color=soul_col,alpha=0.85,
+                tx,ty,ha,va = find_label_pos(sx_e,sy_e,off,11.0,len(lbl_txt),fig_sz,cst_placed,W,H)
+                ax.text(tx,ty,lbl_txt,fontsize=11.0,color=soul_col,alpha=0.85,
                         ha=ha,va=va,fontstyle='italic',fontweight='light',zorder=5,
-                        path_effects=[pe.withStroke(linewidth=2.5,foreground='#080808')])
+                        path_effects=[pe.withStroke(linewidth=3.0,foreground='#080808')])
             else:
                 draw_star_small(ax, sx_e, sy_e, reg_r, spec_col,
                                 p['cn_reg_a']*0.80, fig_sz, z=4.8, W=W)
@@ -1352,10 +1352,10 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
         all_x=[v[0] for v in coords.values()]; all_y=[v[1] for v in coords.values()]
         lbl_cx=sum(all_x)/len(all_x); lbl_cy=sum(all_y)/len(all_y)
         tx_n,ty_n,ha_n,va_n = find_label_pos(lbl_cx,lbl_cy,soul_r*2.5+0.15,
-                                              9.0,len(el['name_cn']),fig_sz,cst_placed,W,H)
-        ax.text(tx_n,ty_n,el['name_cn'],fontsize=9.0,color='#8090c8',alpha=0.65,
+                                              13.0,len(el['name_cn']),fig_sz,cst_placed,W,H)
+        ax.text(tx_n,ty_n,el['name_cn'],fontsize=13.0,color='#8090c8',alpha=0.75,
                 ha=ha_n,va=va_n,fontweight='light',zorder=4.5,
-                path_effects=[pe.withStroke(linewidth=2.5,foreground='#000406')])
+                path_effects=[pe.withStroke(linewidth=3.0,foreground='#000406')])
 
     # ── Frame title & story beat ───────────────────────────────────
     best = min(story_beats, key=lambda b: abs(b[0]-pct))
