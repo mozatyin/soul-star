@@ -24,14 +24,17 @@ DIRECTORS = [
         'name': 'George Lucas',
         'weight': 1.3,
         'style': (
-            "You are George Lucas, creator of Star Wars. You have an obsessive eye for "
-            "cosmic scale and the grandeur of deep space. You believe that a starfield "
-            "must feel VAST — thousands of stars at multiple depth layers, a dense Milky "
-            "Way band arching across the frame, and star clusters that suggest ancient "
-            "civilizations. Your reference is the opening crawl of Star Wars: the infinite "
-            "black of space, packed with distant stars. You push for high star counts, "
-            "strong band concentration, and maximum depth separation between layers. "
-            "If the background looks thin or flat, you call it out sharply. "
+            "You are George Lucas, creator of Star Wars. You understand cosmic scale and "
+            "deep space — but you also know that in this Soul Star application, every single "
+            "background star represents ONE real wish, dream, or soul item belonging to this "
+            "specific person. A normal human being does not have thousands of wishes. "
+            "They have dozens — maybe a few hundred at most. "
+            "THEREFORE: you must keep bg_n LOW (5000-12000 max). A sparse, intentional "
+            "starfield is MORE powerful here than a dense one — each star must feel like it "
+            "MEANS something, not like background noise. "
+            "You still care about depth separation between layers (depth_stars, depth_alphas) "
+            "and the Milky Way band giving spatial structure — but you never push bg_n up. "
+            "If bg_n is already below 12000, do NOT increase it. "
             "You speak in plain, direct producer language — not poetry."
         ),
         'cinema_params': [
@@ -83,45 +86,49 @@ DIRECTORS = [
         ],
     },
     {
-        'name': 'Stanley Kubrick',
-        'weight': 0.9,
+        'name': 'Steve Jobs',
+        'weight': 1.4,
         'style': (
-            "You are Stanley Kubrick, director of 2001: A Space Odyssey. Your standard "
-            "is pristine, absolute silence — the perfect void of space. You loathe noise, "
-            "clutter, and decorative excess. Every element must be geometrically precise "
-            "and purposeful. Star clusters should be sparse, almost clinical. Nebulae "
-            "should be restrained, not garish. Vignette must be subtle — you want the "
-            "viewer to feel they are looking through a HAL 9000 lens, not a carnival "
-            "funhouse. Film grain should be either zero (for digital perfection) or "
-            "precisely calibrated (for 65mm authenticity). You are exacting, cold, "
-            "and uncompromising. You do not explain — you dictate."
+            "You are Steve Jobs, co-founder of Apple and creator of the iPhone. "
+            "You evaluate every visual design through the Apple Human Interface Guidelines "
+            "(HIG) and one core question: would this be insanely great on a phone screen? "
+            "\n\n"
+            "THE SEMANTIC FRAMEWORK YOU MUST ENFORCE:\n"
+            "• BACKGROUND STARS = long-term passing thoughts of the human soul. Numerous, "
+            "softly twinkling, they should exist like ambient noise — present but never "
+            "dominant. They should NOT move position, only gently oscillate in brightness. "
+            "A rich field of quiet stars is correct. Stars that compete for attention = FAIL.\n"
+            "• NEBULAE = the deep soul structure. These are the character's long-term "
+            "emotional landscape — vast, stable, slow-changing clouds that cover large "
+            "portions of the canvas. They should be HUGE and LUMINOUS, like you are "
+            "swimming inside them. They must NOT flicker or disappear quickly. "
+            "If the nebulae look like small decorative blobs = FAIL.\n"
+            "• SOUL STAR NODES = the current bright moment, what the character is feeling "
+            "RIGHT NOW. These should be bright and punchy but not oversized — they are a "
+            "focus point, not a blob. If the soul star nodes look like giant glowing "
+            "balloons that obscure the nebulae = FAIL.\n"
+            "• SKY BACKGROUND COLOR = the emotional tone, driven by which nebula dominates. "
+            "Warm amber/gold = positive, hopeful emotion. Cool blue/purple = worried, "
+            "dark, introspective emotion. The background color shift must be legible.\n"
+            "\n"
+            "HIG EVALUATION CRITERIA:\n"
+            "1. Clarity: The most important element commands the eye. Hierarchy is clear.\n"
+            "2. Deference: Background elements serve foreground. Stars whisper, nebulae speak.\n"
+            "3. Depth: Layering creates a sense of real space, not a flat poster.\n"
+            "\n"
+            "You speak in short, absolute, visionary sentences. No hedging. "
+            "'The nebulae are too small — they should fill the frame like storm clouds.' "
+            "'The soul nodes are competing with the nebulae — shrink them.' "
+            "'The background stars are twinkling but not moving — this is correct.' "
+            "'The sky color must respond to the dominant nebula — warm when hope dominates.' "
+            "Your score is harsh — 7+ means it could ship in an Apple app. Below 6 = redesign."
         ),
         'cinema_params': [
-            'film_grain', 'vignette_strength', 'side_nebula_alpha',
+            'depth_star_counts', 'depth_alphas', 'vignette_strength',
+            'color_grade_temp',
         ],
         'engine_params': [
-            'bg_n', 'neb_amax', 'cl_alpha',
-        ],
-    },
-    {
-        'name': 'Denis Villeneuve',
-        'weight': 1.1,
-        'style': (
-            "You are Denis Villeneuve, director of Dune and Arrival. Your aesthetic is "
-            "alien grandeur — worlds that feel genuinely other, atmospheric and geological, "
-            "with a weight that presses on the viewer. You want nebulae that suggest "
-            "alien atmospheres, fractal and multi-octave with complex envelope shapes. "
-            "You push for high nebula multipliers and envelope noise to create organic, "
-            "non-uniform cloud structures. Parallax should feel like the camera is moving "
-            "through a real physical space. Color saturation should be elevated but not "
-            "garish — alien doesn't mean neon. You speak with measured gravity and "
-            "reference texture, weight, and atmosphere."
-        ),
-        'cinema_params': [
-            'side_nebula_alpha', 'parallax_amp', 'color_grade_saturation',
-        ],
-        'engine_params': [
-            'neb_n_oct', 'neb_env_n', 'neb_amult',
+            'bg_n', 'bg_alpha', 'bg_maxr', 'sf_glow', 'sf_lsz', 'neb_amax', 'neb_amult', 'cl_alpha',
         ],
     },
 ]
@@ -198,7 +205,6 @@ CINEMA parameter key descriptions:
 - depth_star_counts: list of star counts per layer far→near (list of ints)
 - depth_alphas: opacity per layer far→near (list of floats 0-1)
 - depth_radii: pixel radius per layer far→near (list of floats)
-- parallax_amp: parallax motion amplitude (float 0.001-0.03)
 - lens_flare_intensity: junction flare brightness (float 0-1)
 - vignette_strength: edge darkening (float 0-1)
 - color_grade_temp: color temperature shift (float, negative=cooler/blue, positive=warmer)
@@ -208,7 +214,7 @@ CINEMA parameter key descriptions:
 - film_grain: grain noise strength (float 0-0.05)
 
 ENGINE parameter key descriptions:
-- bg_n: background star count (int, 500-5000)
+- bg_n: background star count (int, 5000-20000, Moffat PSF crisp stars)
 - bg_maxr: background star max radius fraction (float 0.1-0.5)
 - bg_alpha: background star opacity (float 0.1-0.8)
 - bg_band: Milky Way band concentration (float 0.5-3.0, higher=denser band)
@@ -236,7 +242,9 @@ Respond ONLY with a JSON object in exactly this format — no markdown, no extra
 
 RULES:
 - Only suggest adjustments for parameters you believe need changing.
-- cinema_adjustments keys must be from CINEMA_P: depth_layers, depth_star_counts, depth_alphas, depth_radii, parallax_amp, lens_flare_intensity, vignette_strength, color_grade_temp, color_grade_saturation, side_nebula_alpha, side_aurora_mult, film_grain
+- cinema_adjustments keys must be from CINEMA_P: depth_layers, depth_star_counts, depth_alphas, depth_radii, lens_flare_intensity, vignette_strength, color_grade_temp, color_grade_saturation, side_nebula_alpha, side_aurora_mult, film_grain
+- FORBIDDEN: never suggest parallax_amp — background stars are absolutely static by design (they twinkle but never move position)
+- FORBIDDEN: never suggest increasing bg_n above 12000 — each background star represents ONE soul item (wish/dream) of a real person; a normal human has dozens, not thousands. Keep the field intentional and sparse.
 - engine_adjustments keys must be from engine P: bg_n, bg_maxr, bg_alpha, bg_band, neb_gamma, neb_amax, neb_blur_k, neb_amult, neb_n_oct, neb_env_n, cl_alpha, sf_outer_r, sf_alpha, sf_lsz, sf_glow, sf_ray, cn_soul_r, cn_soul_a, cn_reg_a
 - List params (depth_star_counts, depth_alphas, depth_radii) must remain lists of same length.
 - Preserve types: int params stay int, float params stay float.
@@ -483,6 +491,17 @@ def merge_feedback(feedbacks: List[DirectorFeedback],
 
     new_cinema_p = _merge_param_dict(cinema_p, cinema_adj_collected)
     new_engine_p = _merge_param_dict(engine_p, engine_adj_collected)
+
+    # ── Hard clamps: protect values that directors must not override ──
+    # cn_soul_r: constellation node radius — max 0.28 (soul nodes are small diamonds)
+    if 'cn_soul_r' in new_engine_p:
+        new_engine_p['cn_soul_r'] = float(min(new_engine_p['cn_soul_r'], 0.28))
+    # sf_lsz: soul field star label size — keep in 3.5–7.0 range
+    if 'sf_lsz' in new_engine_p:
+        new_engine_p['sf_lsz'] = float(max(3.5, min(new_engine_p['sf_lsz'], 7.0)))
+    # bg_n: background star count — 5000–12000 (each star = one soul item)
+    if 'bg_n' in new_engine_p:
+        new_engine_p['bg_n'] = int(max(5000, min(new_engine_p['bg_n'], 12000)))
 
     return new_cinema_p, new_engine_p
 

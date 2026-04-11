@@ -146,34 +146,41 @@ def apply_engine_params_to_file(engine_p: dict) -> None:
 
 def run_cinema_loop(
     character_slug: str,
-    max_iters: int = 3,
-    target_score: float = 8.0,
+    max_iters: int = 20,
+    target_score: float = 9.5,
     api_key: str = '',
     output_root: str = '',
+    min_improvement: float = 0.2,
+    plateau_rounds: int = 2,
 ) -> Path:
     """
     Run the cinema iteration loop for a character.
 
     Each iteration:
-      1. Renders 20-frame cinema video (60 for final)
+      1. Renders 40-frame cinema video (120 for final)
       2. Picks 3 sample frames from _soul_frames/
       3. Calls director panel_review()
       4. Prints review summary
       5. Saves iteration log JSON
-      6. If avg_score >= target_score: stops
+      6. Stops if: target_score reached, OR score plateau detected, OR max_iters reached
       7. Else: merges feedback → updates cinema_p + engine_p
+
+    Plateau detection: if score improvement < min_improvement for plateau_rounds
+    consecutive rounds, the loop stops automatically.
 
     After loop:
       - Bakes winning engine_p into _engine.py
-      - Does final 60-frame render with best cinema_p
+      - Does final 120-frame render with best cinema_p
 
     Parameters
     ----------
-    character_slug : str   e.g. 'little_prince'
-    max_iters      : int   maximum number of review iterations (default 3)
-    target_score   : float stop early if panel avg >= this score (default 8.0)
-    api_key        : str   Anthropic API key (or read from ANTHROPIC_API_KEY env)
-    output_root    : str   base output directory (default ~/Desktop/CinemaLoop)
+    character_slug   : str   e.g. 'little_prince'
+    max_iters        : int   hard cap on iterations (default 20)
+    target_score     : float stop early if panel avg >= this score (default 9.5)
+    api_key          : str   Anthropic API key (or read from ANTHROPIC_API_KEY env)
+    output_root      : str   base output directory (default ~/Desktop/CinemaLoop)
+    min_improvement  : float minimum score gain to count as progress (default 0.2)
+    plateau_rounds   : int   stop after this many consecutive low-improvement rounds (default 2)
 
     Returns
     -------
@@ -211,6 +218,8 @@ def run_cinema_loop(
     iteration_logs = []
     best_cinema_p = dict(cinema_p)
     best_score = -1.0
+    prev_score = -1.0
+    plateau_count = 0
     final_mp4 = None
 
     print(f"\n{'='*72}")
@@ -220,9 +229,9 @@ def run_cinema_loop(
     print(f"{'='*72}\n")
 
     for iteration in range(1, max_iters + 1):
-        n_frames = 20
+        n_frames = 40   # more frames so directors see full animation arc at 12fps
 
-        print(f"\n--- Iteration {iteration}/{max_iters} ({n_frames} frames) ---")
+        print(f"\n--- Iteration {iteration}/{max_iters} ({n_frames} frames @ 12fps) ---")
 
         # ── 1. Render cinema video ─────────────────────────────────────────
         iter_dir = base_dir / f'iter_{iteration:02d}'
@@ -237,7 +246,7 @@ def run_cinema_loop(
             render_spec,
             iter_dir,
             cinema_p=cinema_p,
-            fps=24,
+            fps=12,
         )
         elapsed = time.time() - t0
         print(f"  Rendered in {elapsed:.1f}s -> {mp4_path}")
@@ -297,9 +306,26 @@ def run_cinema_loop(
         log_path.write_text(json.dumps(iteration_logs, indent=2, ensure_ascii=False))
         print(f"  Log saved: {log_path}")
 
-        # ── 6. Check early stopping ────────────────────────────────────────
+        # ── 6. Check stopping conditions ──────────────────────────────────
         if avg_score >= target_score:
             print(f"\n  Target score {target_score} reached ({avg_score:.1f}). Stopping.")
+            break
+
+        # Plateau detection: track consecutive rounds with small improvement
+        if prev_score >= 0:
+            improvement = avg_score - prev_score
+            if improvement < min_improvement:
+                plateau_count += 1
+                print(f"  Score improvement {improvement:+.1f} < {min_improvement} "
+                      f"(plateau round {plateau_count}/{plateau_rounds})")
+            else:
+                plateau_count = 0
+                print(f"  Score improvement {improvement:+.1f} — continuing.")
+
+        prev_score = avg_score
+
+        if plateau_count >= plateau_rounds:
+            print(f"\n  Plateau detected ({plateau_rounds} consecutive low-improvement rounds). Stopping.")
             break
 
         # ── 7. Merge feedback for next iteration ───────────────────────────
@@ -312,20 +338,20 @@ def run_cinema_loop(
     print("  Baking winning engine params into _engine.py...")
     apply_engine_params_to_file(engine_p)
 
-    # ── Final 60-frame render with best cinema_p ───────────────────────────
-    print("\n  Final 60-frame render with best cinema_p...")
+    # ── Final 120-frame render @ 12fps = 10 seconds — cinematic slow reveal ──
+    print("\n  Final 120-frame render @ 12fps (10s cinematic) with best cinema_p...")
     final_dir = base_dir / 'final'
     final_dir.mkdir(parents=True, exist_ok=True)
 
     final_spec = dict(spec)
-    final_spec['n_frames'] = 60
+    final_spec['n_frames'] = 120
 
     t0 = time.time()
     final_mp4 = generate_cinema_soul_star(
         final_spec,
         final_dir,
         cinema_p=best_cinema_p,
-        fps=24,
+        fps=12,
     )
     elapsed = time.time() - t0
     print(f"  Final render done in {elapsed:.1f}s")
@@ -355,16 +381,16 @@ def main() -> None:
     parser.add_argument(
         '--iters',
         type=int,
-        default=3,
+        default=20,
         metavar='N',
-        help='Maximum number of director review iterations (default: 3)',
+        help='Hard cap on iterations (default: 20)',
     )
     parser.add_argument(
         '--target',
         type=float,
-        default=8.0,
+        default=9.5,
         metavar='SCORE',
-        help='Stop early when panel average reaches this score (default: 8.0)',
+        help='Stop early when panel average reaches this score (default: 9.5)',
     )
     parser.add_argument(
         '--key',
@@ -380,6 +406,20 @@ def main() -> None:
         metavar='DIR',
         help='Base output directory (default: ~/Desktop/CinemaLoop)',
     )
+    parser.add_argument(
+        '--min-improvement',
+        type=float,
+        default=0.2,
+        metavar='DELTA',
+        help='Minimum score gain per round to count as progress (default: 0.2)',
+    )
+    parser.add_argument(
+        '--plateau-rounds',
+        type=int,
+        default=2,
+        metavar='N',
+        help='Stop after N consecutive low-improvement rounds (default: 2)',
+    )
 
     args = parser.parse_args()
 
@@ -389,6 +429,8 @@ def main() -> None:
         target_score=args.target,
         api_key=args.key,
         output_root=args.output,
+        min_improvement=args.min_improvement,
+        plateau_rounds=args.plateau_rounds,
     )
     print(f"Done. Final output: {final_mp4}")
 

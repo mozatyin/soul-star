@@ -16,18 +16,18 @@ CINEMA_P = {
     'cinema_w': 1920,
     'cinema_h': 1080,
     'soul_fig_sz': 10.8,        # figsize for soul star → 1080×1080 at DPI=100
-    'depth_layers': 4,
-    'depth_star_counts': [800, 500, 300, 150],   # stars per layer, far→near
-    'depth_alphas': [0.18, 0.30, 0.50, 0.75],
-    'depth_radii': [0.8, 1.4, 2.0, 3.0],         # pixel radius per layer
-    'parallax_amp': 0.008,      # panel parallax amplitude per frame
-    'lens_flare_intensity': 0.55,
-    'vignette_strength': 0.45,
-    'color_grade_temp': -0.08,  # negative = cooler/blue, positive = warmer
-    'color_grade_saturation': 1.15,
-    'side_nebula_alpha': 0.12,
-    'side_aurora_mult': 1.4,
-    'film_grain': 0.012,
+    'depth_layers': 5,
+    'depth_star_counts': [301, 170, 92, 40],     # stars per layer — sparse, background serves foreground
+    'depth_alphas': [0.0548, 0.1148, 0.2227, 0.4805],
+    'depth_radii': [0.583, 1.239, 2.252, 3.665],         # pixel radius per layer
+    'parallax_amp': 0.0,        # LOCKED: background stars absolutely static — twinkle only, never move
+    'lens_flare_intensity': 0.504,
+    'vignette_strength': 0.707,
+    'color_grade_temp': -0.029,
+    'color_grade_saturation': 1.164,
+    'side_nebula_alpha': 0.237,
+    'side_aurora_mult': 1.395,
+    'film_grain': 0.017,
 }
 
 
@@ -287,82 +287,59 @@ def composite_cinema_frame(soul_frame_path, frame_idx, n_frames,
     # 1. Allocate black canvas
     canvas = np.zeros((cinema_h, cinema_w, 3), dtype=np.uint8)
 
-    # 2. Load and place soul star frame
-    soul_img = Image.open(soul_frame_path).convert('RGB')
-    soul_img = soul_img.resize((soul_w, soul_h), Image.LANCZOS)
-    soul_arr = np.array(soul_img)
-    canvas[:, soul_x:soul_x + soul_w, :] = soul_arr
-
-    # 3. Left panel: depth stars + nebula overlay
+    # 2. Draw depth stars uniformly across the full 1920px canvas.
+    #    Scale star counts proportionally so density matches the original side panels.
+    #    Soul star is alpha-composited on top, so its dark background becomes transparent
+    #    and cinema stars are visible everywhere with no hard boundary.
+    _scale = cinema_w / panel_w   # 1920 / 420 ≈ 4.57
+    _full_cp = dict(cinema_p)
+    _full_cp['depth_star_counts'] = [int(round(c * _scale)) for c in cinema_p['depth_star_counts']]
     _draw_depth_stars(
-        canvas, x_offset=0, panel_w=panel_w, panel_h=cinema_h,
-        frame_idx=frame_idx, n_frames=n_frames, cinema_p=cinema_p,
+        canvas, x_offset=0, panel_w=cinema_w, panel_h=cinema_h,
+        frame_idx=frame_idx, n_frames=n_frames, cinema_p=_full_cp,
         rng_seed=42
     )
+
+    # 3. Nebula overlays — side panels full intensity, faint across center for continuity
+    canvas_float = canvas.astype(np.float32)
     neb_left = _make_nebula_overlay(panel_w, cinema_h, aurora_val, cinema_p, 42)
-    canvas_float = canvas.astype(float)
     canvas_float[:, :panel_w] = np.clip(
         canvas_float[:, :panel_w] + neb_left * 255, 0, 255
-    )
-
-    # 4. Right panel: depth stars + nebula overlay (different rng_seed)
-    _draw_depth_stars(
-        canvas, x_offset=soul_x + soul_w, panel_w=panel_w, panel_h=cinema_h,
-        frame_idx=frame_idx, n_frames=n_frames, cinema_p=cinema_p,
-        rng_seed=137
     )
     neb_right = _make_nebula_overlay(panel_w, cinema_h, aurora_val, cinema_p, 137 + 1000)
     canvas_float[:, soul_x + soul_w:] = np.clip(
         canvas_float[:, soul_x + soul_w:] + neb_right * 255, 0, 255
     )
+    neb_center = _make_nebula_overlay(soul_w, cinema_h, aurora_val * 0.4, cinema_p, 999)
+    canvas_float[:, soul_x:soul_x + soul_w] = np.clip(
+        canvas_float[:, soul_x:soul_x + soul_w] + neb_center * 255, 0, 255
+    )
     canvas = canvas_float.astype(np.uint8)
 
-    # 5. Lens flare at junction edges x=420 and x=1499
-    flare_intensity = cinema_p['lens_flare_intensity'] * aurora_val
-    if flare_intensity > 0.01:
-        # Color: cool blue if temp < 0, warm amber if temp >= 0
-        if bg_temp < 0:
-            flare_r, flare_g, flare_b = 0.40, 0.55, 1.00   # cool blue
-        else:
-            flare_r, flare_g, flare_b = 1.00, 0.75, 0.35   # warm amber
+    # 4. Screen-blend soul star over cinema background.
+    #    Screen formula: result = 1 - (1-soul)*(1-bg)
+    #    → near-black soul pixels ≈ 0 contribute nothing (background shows through)
+    #    → bright nebulas/nodes/labels stack luminously on top of cinema stars
+    #    No boundary lines, no chroma-key artefacts.
+    soul_img = Image.open(soul_frame_path).convert('RGB')
+    soul_img = soul_img.resize((soul_w, soul_h), Image.LANCZOS)
+    soul_norm = np.array(soul_img, dtype=np.float32) / 255.0   # (H, W, 3) in [0,1]
 
-        flare_bloom_w = 12  # ±12px
+    canvas_norm = canvas.astype(np.float32) / 255.0
+    bg_region = canvas_norm[:, soul_x:soul_x + soul_w, :]
+    # Screen blend
+    screened = 1.0 - (1.0 - soul_norm) * (1.0 - bg_region)
+    canvas_norm[:, soul_x:soul_x + soul_w, :] = screened
+    canvas = np.clip(canvas_norm * 255, 0, 255).astype(np.uint8)
 
-        # Phase-based flicker (subtle)
-        phase = (frame_idx / max(n_frames - 1, 1)) * 2.0 * math.pi
-        flicker = 1.0 + 0.08 * math.sin(phase * 3.1)
-
-        for flare_x in (soul_x, soul_x + soul_w - 1):
-            for y in range(0, cinema_h, 2):
-                # Vertical gradient: brightest at vertical center
-                vy = (y - cinema_h / 2.0) / (cinema_h / 2.0)
-                v_falloff = math.exp(-vy * vy * 4.0)
-
-                for dx in range(-flare_bloom_w, flare_bloom_w + 1):
-                    px = flare_x + dx
-                    if px < 0 or px >= cinema_w:
-                        continue
-                    # Gaussian falloff horizontally
-                    h_falloff = math.exp(
-                        -dx * dx / (flare_bloom_w * flare_bloom_w * 0.5))
-                    blend = flare_intensity * flicker * v_falloff * h_falloff
-
-                    existing = canvas[y, px]
-                    canvas[y, px, 0] = int(
-                        min(255, existing[0] + blend * flare_r * 255))
-                    canvas[y, px, 1] = int(
-                        min(255, existing[1] + blend * flare_g * 255))
-                    canvas[y, px, 2] = int(
-                        min(255, existing[2] + blend * flare_b * 255))
-
-    # 6. Apply vignette to full frame
+    # 5. Apply vignette to full frame
     canvas = _apply_vignette(canvas, cinema_p['vignette_strength'])
 
-    # 7. Apply film grain (seed based on frame_idx for frame-to-frame variation)
+    # 6. Apply film grain (seed based on frame_idx for frame-to-frame variation)
     canvas = _apply_film_grain(canvas, cinema_p['film_grain'],
                                rng_seed=frame_idx + 7777)
 
-    # 8. Convert to PIL Image and apply color grade
+    # 7. Convert to PIL Image and apply color grade
     pil_frame = Image.fromarray(canvas, mode='RGB')
     pil_frame = _apply_color_grade(
         pil_frame,
@@ -370,7 +347,7 @@ def composite_cinema_frame(soul_frame_path, frame_idx, n_frames,
         saturation=cinema_p['color_grade_saturation'],
     )
 
-    # 9. Return final 1920×1080 PIL Image RGB
+    # 8. Return final 1920×1080 PIL Image RGB
     assert pil_frame.size == (cinema_w, cinema_h), (
         f"Unexpected output size: {pil_frame.size}, expected ({cinema_w}, {cinema_h})")
     return pil_frame

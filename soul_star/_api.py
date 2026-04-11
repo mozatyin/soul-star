@@ -61,6 +61,13 @@ def generate_soul_star(spec, output_dir):
     gif_ms = int(spec.get('gif_duration_ms', 300))
     FIG_SZ = 7.0 * (W / 20.0)   # keeps star pixel size constant across canvas sizes
     DPI = 100
+    px_soul = int(FIG_SZ * DPI)
+    sky_events = E.precompute_sky_events(
+        N, px_soul, rng_seed=42,
+        story_beats=spec.get('story_beats'),
+        sky_event_beats=spec.get('sky_event_beats'),
+        guarantee_all=True,
+    )
 
     universe = {
         'name':      spec['name'],
@@ -106,6 +113,7 @@ def generate_soul_star(spec, output_dir):
             FIG_SZ, DPI, ecology_positions,
             W, H, bg_temp_curve, aurora_curve,
             ecology_elements, story_beats, lifecycle_label,
+            sky_events=sky_events,
         )
 
         eco_alive = sum(1 for el in ecology_elements if E.lerp(el['curve'], pct) > 3.0)
@@ -157,6 +165,13 @@ def generate_cinema_soul_star(spec, output_dir, cinema_p=None, fps=24):
     H       = float(spec.get('H', 26.0))
     DPI     = 100
     soul_fig_sz = cp['soul_fig_sz']   # 10.8 → 1080px at DPI=100
+    px_soul = int(soul_fig_sz * DPI)
+    sky_events = E.precompute_sky_events(
+        N, px_soul, rng_seed=42,
+        story_beats=spec.get('story_beats'),
+        sky_event_beats=spec.get('sky_event_beats'),
+        guarantee_all=True,
+    )
 
     universe = {
         'name':      spec['name'],
@@ -197,6 +212,7 @@ def generate_cinema_soul_star(spec, output_dir, cinema_p=None, fps=24):
             soul_fig_sz, DPI, ecology_positions,
             W, H, bg_temp_curve, aurora_curve,
             ecology_elements, story_beats, lifecycle_label,
+            sky_events=sky_events,
         )
 
         bg_temp  = E.lerp(bg_temp_curve, pct)

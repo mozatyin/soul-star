@@ -31,13 +31,13 @@ REL_THRESH    = 7.5
 PAT_THRESH    = 7.0
 
 P = {
-    'bg_n':3411, 'bg_maxr':0.316, 'bg_alpha':0.483, 'bg_band':2.088,
-    'neb_gamma':2.967, 'neb_amax':0.76,  'neb_blur_k':0.11,
-    'neb_amult':10.3,   'neb_n_oct':4.5,  'neb_env_n':0.475,
-    'cl_alpha':0.430,
-    'sf_outer_r':0.340, 'sf_alpha':0.960, 'sf_lsz':19.0,
-    'sf_glow':11.2, 'sf_ray':9.5,
-    'cn_soul_r':0.118, 'cn_soul_a':0.870, 'cn_reg_a':0.620,
+    'bg_n':6880,   'bg_maxr':0.166, 'bg_alpha':0.510, 'bg_band':2.095,
+    'neb_gamma':2.902, 'neb_amax':0.817,  'neb_blur_k':0.110,
+    'neb_amult':13.653,   'neb_n_oct':4.474,  'neb_env_n':0.481,
+    'cl_alpha':0.498,
+    'sf_outer_r':0.420, 'sf_alpha':1.000, 'sf_lsz':5.5,
+    'sf_glow':11.01, 'sf_ray':9.497,
+    'cn_soul_r':0.26, 'cn_soul_a':0.960, 'cn_reg_a':0.900,
 }
 
 TMPL = {
@@ -227,10 +227,443 @@ def build_fractal_nebs(p, px, nebs, W, H):
     return layer
 
 # ══════════════════════════════════════════════════════════════════
+# SKY PHENOMENA — rare atmospheric/astronomical events
+# Probabilities tuned for "watch 3-5 min/day" session cadence.
+# Natural frequency brackets → scaled probability per video play:
+#   >1/5min (common)   → 1x  → 60-80% per play
+#   ~1/hour            → 10x → 20-35%
+#   ~1/year            → 100x → 12-20%
+#   ~1/decade          → 1000x capped → 5-8%
+#   ~1/century         → 1000x capped → 2-3%
+#   never (gift)       → 2%
+# ══════════════════════════════════════════════════════════════════
+SKY_EVENTS_CONFIG = {
+    # type              p/play  max  dur_min  dur_max
+    'meteor':          (0.65,   2,    3,       6   ),
+    'satellite':       (0.30,   1,    50,      80  ),
+    'aurora_surge':    (0.18,   1,    20,      35  ),
+    'variable_star':   (0.22,   1,    -1,      -1  ),  # whole video
+    'comet':           (0.07,   1,    60,      90  ),
+    'supernova':       (0.03,   1,    30,      50  ),
+    'nebula_breath':   (1.00,   1,    -1,      -1  ),  # always
+    'dark_cloud':      (0.15,   1,    40,      60  ),
+    'globular_cluster':(0.12,   1,    25,      40  ),
+    'grav_ripple':     (0.02,   1,    20,      30  ),
+}
+
+
+def precompute_sky_events(n_frames, px, rng_seed=777, story_beats=None, sky_event_beats=None, guarantee_all=True):
+    """Pre-compute sky event schedule for a full video render.
+
+    sky_event_beats: {event_type: {beat_name: boost_multiplier}}
+    When a matching story beat is active, probability is boosted and
+    event timing is biased toward that beat window.
+    """
+    rng = np.random.default_rng(rng_seed)
+    events = []
+
+    def _frame_weights(dur, beat_boosts):
+        w = np.ones(n_frames, dtype=np.float64)
+        if not story_beats or not beat_boosts:
+            w[max(0, n_frames - dur):] = 0.0
+            total = w.sum()
+            return w / total if total > 1e-9 else np.ones(n_frames) / n_frames
+        current = story_beats[0][1]
+        for fi in range(n_frames):
+            pct = fi * 100.0 / max(n_frames - 1, 1)
+            for bp, bn, _ in story_beats:
+                if pct >= bp:
+                    current = bn
+            if current in beat_boosts:
+                w[fi] *= beat_boosts[current]
+        w[max(0, n_frames - dur):] = 0.0
+        total = w.sum()
+        return w / total if total > 1e-9 else np.ones(n_frames) / n_frames
+
+    def _effective_p(base_p, etype):
+        """Boost base probability when matching beats exist in this video."""
+        if not sky_event_beats or etype not in sky_event_beats:
+            return base_p
+        if not story_beats:
+            return base_p
+        beat_boosts = sky_event_beats[etype]
+        # Check if any matching beat exists in this video's story
+        beat_names_in_video = {bn for _, bn, _ in story_beats}
+        max_boost = max((v for k, v in beat_boosts.items() if k in beat_names_in_video), default=1.0)
+        if max_boost <= 1.0:
+            return base_p
+        # Logarithmic compression: high boosts → meaningful but not overwhelming increase
+        import math as _math
+        boosted = base_p * (1.0 + _math.log(max_boost) * 0.6)
+        return min(0.95, boosted)
+
+    def _sched(etype, dur):
+        """Sample a start frame using story beat weights."""
+        beats = sky_event_beats.get(etype, {}) if sky_event_beats else {}
+        w = _frame_weights(dur, beats)
+        return int(rng.choice(n_frames, p=w))
+
+    def _rand_edge():
+        edge = int(rng.integers(0, 4))
+        if edge == 0: return int(rng.integers(0, px)), 0
+        if edge == 1: return px-1, int(rng.integers(0, px))
+        if edge == 2: return int(rng.integers(0, px)), px-1
+        return 0, int(rng.integers(0, px))
+
+    # nebula_breath: always present, whole video
+    events.append({'type':'nebula_breath','start_frame':0,'end_frame':n_frames-1,
+                   'params':{'amplitude':0.12}})
+
+    # variable_star: whole video if triggered
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['variable_star']
+    ep = _effective_p(p0, 'variable_star')
+    if rng.random() < ep:
+        events.append({'type':'variable_star','start_frame':0,'end_frame':n_frames-1,
+                       'params':{'cx':int(rng.integers(px//6,5*px//6)),
+                                 'cy':int(rng.integers(px//6,5*px//6)),
+                                 'period_frames': n_frames*2,
+                                 'amplitude':0.55}})
+
+    # meteor: up to 2
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['meteor']
+    ep = _effective_p(p0, 'meteor')
+    for _ in range(mx):
+        if rng.random() < ep / mx:
+            dur = int(rng.integers(dmin, dmax+1))
+            start = _sched('meteor', dur)
+            x0, y0 = _rand_edge()
+            angle = float(rng.uniform(0.1, math.pi - 0.1))
+            length = int(rng.integers(px//8, px//3))
+            x1 = int(np.clip(x0 + length*math.cos(angle), 0, px-1))
+            y1 = int(np.clip(y0 + length*math.sin(angle), 0, px-1))
+            events.append({'type':'meteor','start_frame':start,'end_frame':start+dur-1,
+                           'params':{'x0':x0,'y0':y0,'x1':x1,'y1':y1,
+                                     'r':float(rng.uniform(0.88,1.0)),
+                                     'g':float(rng.uniform(0.88,1.0)),
+                                     'b':float(rng.uniform(0.92,1.0))}})
+
+    # satellite
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['satellite']
+    ep = _effective_p(p0, 'satellite')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('satellite', dur)
+        y = int(rng.integers(px//8, 7*px//8))
+        going_right = bool(rng.random() > 0.5)
+        x0, x1 = (0, px-1) if going_right else (px-1, 0)
+        y1 = y + int(rng.integers(-px//15, px//15))
+        events.append({'type':'satellite','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'x0':x0,'y0':y,'x1':x1,'y1':int(np.clip(y1,0,px-1))}})
+
+    # aurora_surge
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['aurora_surge']
+    ep = _effective_p(p0, 'aurora_surge')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('aurora_surge', dur)
+        events.append({'type':'aurora_surge','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'peak_mult':float(rng.uniform(2.5, 4.5))}})
+
+    # comet
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['comet']
+    ep = _effective_p(p0, 'comet')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('comet', dur)
+        y0 = int(rng.integers(px//5, 4*px//5))
+        y1 = y0 + int(rng.integers(-px//10, px//10))
+        events.append({'type':'comet','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'x0':0,'y0':y0,'x1':px*2//5,'y1':int(np.clip(y1,0,px-1)),
+                                 'tail_len':int(rng.integers(30,60))}})
+
+    # supernova
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['supernova']
+    ep = _effective_p(p0, 'supernova')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('supernova', dur)
+        events.append({'type':'supernova','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'cx':int(rng.integers(px//6,5*px//6)),
+                                 'cy':int(rng.integers(px//6,5*px//6))}})
+
+    # dark_cloud
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['dark_cloud']
+    ep = _effective_p(p0, 'dark_cloud')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('dark_cloud', dur)
+        events.append({'type':'dark_cloud','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'cy':int(rng.integers(px//4,3*px//4)),
+                                 'ry':int(rng.integers(px//8,px//4)),
+                                 'rx':int(rng.integers(px//4,px//2)),
+                                 'opacity':float(rng.uniform(0.25,0.45))}})
+
+    # globular_cluster
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['globular_cluster']
+    ep = _effective_p(p0, 'globular_cluster')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('globular_cluster', dur)
+        events.append({'type':'globular_cluster','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'cx':int(rng.integers(px//6,5*px//6)),
+                                 'cy':int(rng.integers(px//6,5*px//6)),
+                                 'radius':int(rng.integers(px//15,px//8)),
+                                 'n_stars':int(rng.integers(60,120)),
+                                 'seed':int(rng.integers(0,99999))}})
+
+    # grav_ripple
+    p0, mx, dmin, dmax = SKY_EVENTS_CONFIG['grav_ripple']
+    ep = _effective_p(p0, 'grav_ripple')
+    if rng.random() < ep:
+        dur = int(rng.integers(dmin, dmax+1))
+        start = _sched('grav_ripple', dur)
+        events.append({'type':'grav_ripple','start_frame':start,'end_frame':start+dur-1,
+                       'params':{'cx':int(rng.integers(px//4,3*px//4)),
+                                 'cy':int(rng.integers(px//4,3*px//4)),
+                                 'max_r':int(rng.integers(px//5,px//3))}})
+
+    # ── Guarantee every event type appears at least once ─────────────
+    if guarantee_all:
+        scheduled_types = {e['type'] for e in events}
+
+        for etype in ('meteor', 'satellite', 'aurora_surge', 'comet',
+                      'supernova', 'dark_cloud', 'globular_cluster', 'grav_ripple'):
+            if etype in scheduled_types:
+                continue
+            _p0, _mx, dmin_g, dmax_g = SKY_EVENTS_CONFIG[etype]
+            dur = int(rng.integers(dmin_g, dmax_g + 1))
+            start = _sched(etype, dur)
+
+            if etype == 'meteor':
+                x0, y0 = _rand_edge()
+                angle = float(rng.uniform(0.1, math.pi - 0.1))
+                length = int(rng.integers(px//8, px//3))
+                x1 = int(np.clip(x0 + length*math.cos(angle), 0, px-1))
+                y1 = int(np.clip(y0 + length*math.sin(angle), 0, px-1))
+                events.append({'type':'meteor','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'x0':x0,'y0':y0,'x1':x1,'y1':y1,
+                                         'r':float(rng.uniform(0.88,1.0)),
+                                         'g':float(rng.uniform(0.88,1.0)),
+                                         'b':float(rng.uniform(0.92,1.0))}})
+            elif etype == 'satellite':
+                y = int(rng.integers(px//8, 7*px//8))
+                going_right = bool(rng.random() > 0.5)
+                x0g, x1g = (0, px-1) if going_right else (px-1, 0)
+                y1 = int(np.clip(y + int(rng.integers(-px//15, px//15)), 0, px-1))
+                events.append({'type':'satellite','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'x0':x0g,'y0':y,'x1':x1g,'y1':y1}})
+            elif etype == 'aurora_surge':
+                events.append({'type':'aurora_surge','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'peak_mult':float(rng.uniform(2.5, 4.5))}})
+            elif etype == 'comet':
+                y0g = int(rng.integers(px//5, 4*px//5))
+                y1g = int(np.clip(y0g + int(rng.integers(-px//10, px//10)), 0, px-1))
+                events.append({'type':'comet','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'x0':0,'y0':y0g,'x1':px*2//5,'y1':y1g,
+                                         'tail_len':int(rng.integers(30,60))}})
+            elif etype == 'supernova':
+                events.append({'type':'supernova','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'cx':int(rng.integers(px//6,5*px//6)),
+                                         'cy':int(rng.integers(px//6,5*px//6))}})
+            elif etype == 'dark_cloud':
+                events.append({'type':'dark_cloud','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'cy':int(rng.integers(px//4,3*px//4)),
+                                         'ry':int(rng.integers(px//8,px//4)),
+                                         'rx':int(rng.integers(px//4,px//2)),
+                                         'opacity':float(rng.uniform(0.25,0.45))}})
+            elif etype == 'globular_cluster':
+                events.append({'type':'globular_cluster','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'cx':int(rng.integers(px//6,5*px//6)),
+                                         'cy':int(rng.integers(px//6,5*px//6)),
+                                         'radius':int(rng.integers(px//15,px//8)),
+                                         'n_stars':int(rng.integers(60,120)),
+                                         'seed':int(rng.integers(0,99999))}})
+            elif etype == 'grav_ripple':
+                events.append({'type':'grav_ripple','start_frame':start,'end_frame':start+dur-1,
+                               'params':{'cx':int(rng.integers(px//4,3*px//4)),
+                                         'cy':int(rng.integers(px//4,3*px//4)),
+                                         'max_r':int(rng.integers(px//5,px//3))}})
+
+        if 'variable_star' not in scheduled_types:
+            events.append({'type':'variable_star','start_frame':0,'end_frame':n_frames-1,
+                           'params':{'cx':int(rng.integers(px//6,5*px//6)),
+                                     'cy':int(rng.integers(px//6,5*px//6)),
+                                     'period_frames': n_frames*2,
+                                     'amplitude':0.55}})
+
+    return events
+
+
+def _sky_line(img, px, x0, y0, x1, y1, r, g, b, brightness_arr):
+    """Draw a line segment into img, brightness_arr has one value per point."""
+    n = max(abs(x1-x0), abs(y1-y0), 1)
+    xs = np.round(np.linspace(x0, x1, n+1)).astype(int)
+    ys = np.round(np.linspace(y0, y1, n+1)).astype(int)
+    valid = (xs >= 0) & (xs < px) & (ys >= 0) & (ys < px)
+    bv = np.broadcast_to(brightness_arr, (n+1,)) if np.ndim(brightness_arr)==0 else brightness_arr
+    img[ys[valid], xs[valid], 0] += r * bv[valid]
+    img[ys[valid], xs[valid], 1] += g * bv[valid]
+    img[ys[valid], xs[valid], 2] += b * bv[valid]
+
+
+def render_sky_events_to_img(img, px, frame_idx, sky_events):
+    """Render all active sky events into pixel buffer img (in-place, float32)."""
+    if not sky_events:
+        return
+
+    # Pre-build meshgrid only if needed
+    _need_grid = any(e['type'] in ('supernova','dark_cloud','grav_ripple','variable_star')
+                     for e in sky_events
+                     if e['start_frame'] <= frame_idx <= e['end_frame'])
+    if _need_grid:
+        yy, xx = np.mgrid[0:px, 0:px].astype(np.float32)
+
+    for evt in sky_events:
+        if not (evt['start_frame'] <= frame_idx <= evt['end_frame']):
+            continue
+        etype = evt['type']
+        p     = evt['params']
+        dur   = max(evt['end_frame'] - evt['start_frame'] + 1, 1)
+        phase = (frame_idx - evt['start_frame']) / max(dur - 1, 1)  # 0→1
+
+        # ── Meteor ────────────────────────────────────────────────
+        if etype == 'meteor':
+            # head moves along trajectory; trail fades behind
+            hx = int(p['x0'] + (p['x1']-p['x0']) * phase)
+            hy = int(p['y0'] + (p['y1']-p['y0']) * phase)
+            tp = max(0.0, phase - 0.35)
+            tx = int(p['x0'] + (p['x1']-p['x0']) * tp)
+            ty = int(p['y0'] + (p['y1']-p['y0']) * tp)
+            n  = max(abs(hx-tx), abs(hy-ty), 1)
+            t_vals = np.linspace(0.0, 1.0, n+1, dtype=np.float32)  # 0=tail, 1=head
+            fade = float((1.0 - phase) ** 0.5)   # slow fade: bright start → dim end
+            brightness = t_vals**2 * fade * 2.8
+            _sky_line(img, px, tx, ty, hx, hy, p['r'], p['g'], p['b'], brightness)
+
+        # ── Satellite ─────────────────────────────────────────────
+        elif etype == 'satellite':
+            cx = int(p['x0'] + (p['x1']-p['x0']) * phase)
+            cy = int(p['y0'] + (p['y1']-p['y0']) * phase)
+            if 0 <= cx < px and 0 <= cy < px:
+                img[cy, cx, 0] += 0.70
+                img[cy, cx, 1] += 0.72
+                img[cy, cx, 2] += 0.75
+                # soft cross-pixel glow
+                for dx, dy in ((-1,0),(1,0),(0,-1),(0,1)):
+                    nx_, ny_ = cx+dx, cy+dy
+                    if 0 <= nx_ < px and 0 <= ny_ < px:
+                        img[ny_, nx_, :] += 0.18
+
+        # ── Comet ─────────────────────────────────────────────────
+        elif etype == 'comet':
+            hx = int(p['x0'] + (p['x1']-p['x0']) * phase)
+            hy = int(p['y0'] + (p['y1']-p['y0']) * phase)
+            # Bright head (Moffat-like: just a bright pixel + glow)
+            if 0 <= hx < px and 0 <= hy < px:
+                img[hy, hx, :] += 1.2
+                for dx, dy in ((-1,0),(1,0),(0,-1),(0,1),(-1,-1),(1,1),(-1,1),(1,-1)):
+                    nx_, ny_ = hx+dx, hy+dy
+                    if 0 <= nx_ < px and 0 <= ny_ < px:
+                        img[ny_, nx_, :] += 0.40
+            # Tail: points OPPOSITE to direction of motion (anti-sunward)
+            dx_dir = -(p['x1']-p['x0']); dy_dir = -(p['y1']-p['y0'])
+            norm = math.sqrt(dx_dir**2 + dy_dir**2) + 1e-8
+            dx_dir /= norm; dy_dir /= norm
+            tail = p['tail_len']
+            d_arr = np.arange(1, tail+1, dtype=np.float32)
+            ivals = np.exp(-d_arr / (tail*0.35)) * 0.55
+            xs_t = np.clip((hx + dx_dir*d_arr + 0.5).astype(int), 0, px-1)
+            ys_t = np.clip((hy + dy_dir*d_arr + 0.5).astype(int), 0, px-1)
+            img[ys_t, xs_t, 0] += ivals * 0.85
+            img[ys_t, xs_t, 1] += ivals * 0.90
+            img[ys_t, xs_t, 2] += ivals * 1.00
+
+        # ── Supernova ─────────────────────────────────────────────
+        elif etype == 'supernova':
+            cx, cy = int(p['cx']), int(p['cy'])
+            # Rise fast (first 15% of dur), then slow exponential decay
+            if phase <= 0.15:
+                intensity = phase / 0.15
+            else:
+                intensity = math.exp(-5.0 * (phase - 0.15))
+            # Glow ring
+            r_glow = int(intensity * px * 0.08)
+            if r_glow > 0:
+                dr = np.sqrt((xx - cx)**2 + (yy - cy)**2)
+                glow = intensity * 1.8 * np.exp(-0.5 * (dr / max(r_glow*0.5, 1))**2)
+                img[:,:,0] += glow.astype(np.float32) * 1.0
+                img[:,:,1] += glow.astype(np.float32) * 0.85
+                img[:,:,2] += glow.astype(np.float32) * 0.55
+            # Bright core
+            if 0 <= cx < px and 0 <= cy < px:
+                img[cy, cx, 0] += intensity * 3.0
+                img[cy, cx, 1] += intensity * 2.5
+                img[cy, cx, 2] += intensity * 1.5
+
+        # ── Dark cloud ────────────────────────────────────────────
+        elif etype == 'dark_cloud':
+            # Drifts in from left, peaks in middle, exits right
+            cx_cloud = int((phase - 0.5) * px * 1.8 + px * 0.5)
+            cy_cloud = int(p['cy'])
+            dr = np.sqrt(((xx - cx_cloud)/max(p['rx'],1))**2 +
+                         ((yy - cy_cloud)/max(p['ry'],1))**2)
+            # Smooth bell: max opacity in center, fades at edges
+            fade_in_out = math.sin(math.pi * phase)  # 0→1→0
+            mask = np.exp(-dr**2 * 0.8) * p['opacity'] * fade_in_out
+            # Darken the image
+            img[:,:,0] *= (1.0 - mask).astype(np.float32)
+            img[:,:,1] *= (1.0 - mask).astype(np.float32)
+            img[:,:,2] *= (1.0 - mask).astype(np.float32)
+
+        # ── Globular cluster ──────────────────────────────────────
+        elif etype == 'globular_cluster':
+            rng_gc = np.random.default_rng(p['seed'])
+            fade = float(math.sin(math.pi * phase))  # fade in/out
+            n_gc = int(p['n_stars'])
+            # Gaussian distribution around center
+            r_arr = rng_gc.exponential(p['radius']*0.4, n_gc).clip(0, p['radius'])
+            ang_arr = rng_gc.uniform(0, 2*math.pi, n_gc)
+            gx = (p['cx'] + r_arr*np.cos(ang_arr)).astype(int)
+            gy = (p['cy'] + r_arr*np.sin(ang_arr)).astype(int)
+            gm = rng_gc.uniform(0.06, 0.25, n_gc).astype(np.float32) * fade
+            valid = (gx >= 0) & (gx < px) & (gy >= 0) & (gy < px)
+            img[gy[valid], gx[valid], 0] += gm[valid] * 0.90
+            img[gy[valid], gx[valid], 1] += gm[valid] * 0.92
+            img[gy[valid], gx[valid], 2] += gm[valid] * 1.00
+
+        # ── Gravitational ripple ──────────────────────────────────
+        elif etype == 'grav_ripple':
+            cx, cy = int(p['cx']), int(p['cy'])
+            r_ring = phase * p['max_r']
+            sigma  = max(2.0, p['max_r'] * 0.04)
+            dr = np.sqrt((xx - cx)**2 + (yy - cy)**2)
+            ring = np.exp(-0.5 * ((dr - r_ring) / sigma)**2)
+            # Fades as it expands
+            amp = float((1.0 - phase) * 0.18)
+            img[:,:,0] += (ring * amp * 0.70).astype(np.float32)
+            img[:,:,1] += (ring * amp * 0.80).astype(np.float32)
+            img[:,:,2] += (ring * amp * 1.00).astype(np.float32)
+
+        # ── Variable star (extra slow pulse, distinct from twinkling) ──
+        elif etype == 'variable_star':
+            cx, cy = int(p['cx']), int(p['cy'])
+            pulse = float(0.5 + 0.5*math.sin(2*math.pi * frame_idx / p['period_frames']))
+            brightness = p['amplitude'] * pulse
+            dr = np.sqrt((xx - cx)**2 + (yy - cy)**2)
+            glow = np.exp(-0.5*(dr/max(3.0, px*0.012))**2) * brightness
+            img[:,:,0] += (glow * 0.95).astype(np.float32)
+            img[:,:,1] += (glow * 0.88).astype(np.float32)
+            img[:,:,2] += (glow * 0.72).astype(np.float32)
+            # Bright core pixel
+            if 0 <= cx < px and 0 <= cy < px:
+                img[cy, cx, :] += brightness * 1.5
+
+
+# ══════════════════════════════════════════════════════════════════
 # SKY ATMOSPHERE
 # ══════════════════════════════════════════════════════════════════
 
-def render_sky_atmosphere(ax, pct, fig_sz, dpi, W, H, bg_temp_curve, aurora_curve):
+def render_sky_atmosphere(ax, pct, fig_sz, dpi, W, H, bg_temp_curve, aurora_curve, aurora_surge_mult=1.0):
     """Render atmospheric sky gradient + optional aurora. zorder=0.5."""
     temp     = lerp(bg_temp_curve, pct)
     aurora_s = lerp(aurora_curve, pct)
@@ -273,12 +706,262 @@ def render_sky_atmosphere(ax, pct, fig_sz, dpi, W, H, bg_temp_curve, aurora_curv
             bw = max(2.4, 0.042*ny)
             env  = np.exp(-((ys_a - by)/bw)**2)
             wave = 0.58 + 0.42*np.sin(xs_a*0.22 + pct*0.18)
-            contrib = aurora_s * strength * 0.52 * env[:,None] * wave[None,:]
+            contrib = aurora_s * aurora_surge_mult * strength * 0.52 * env[:,None] * wave[None,:]
             img += (contrib[:,:,None] * ac[None,None,:]).astype(np.float32)
 
     img = np.clip(img, 0, 1)
     ax.imshow(img, extent=[0, W, 0, H], origin='lower',
               aspect='auto', zorder=0.5, interpolation='bilinear')
+
+# ══════════════════════════════════════════════════════════════════
+# STARFIELD — Moffat PSF stamps (physically accurate, sharp stars)
+# ══════════════════════════════════════════════════════════════════
+
+def _moffat_stamp(size, alpha=0.85, beta=4.765):
+    """
+    Moffat PSF kernel, normalized so center pixel = 1.0.
+    Moffat: PSF(r) = (1 + (r/alpha)^2)^(-beta)
+    At r=1px with alpha=0.85: value = (1+1.385)^-4.765 ≈ 0.014  — nearly ALL
+    light in center pixel. This is the "sparkle" quality of real stars.
+    """
+    c = size // 2
+    yy, xx = np.ogrid[-c:c+1, -c:c+1]
+    r = np.sqrt(xx.astype(np.float32)**2 + yy.astype(np.float32)**2)
+    psf = (1.0 + (r / alpha)**2).astype(np.float32) ** (-beta)
+    return (psf / float(psf[c, c])).astype(np.float32)   # center = 1.0
+
+# Stamp library — 6 tiers: (mag_lo, mag_hi, stamp)
+# Small alpha → sharp concentrated core; larger alpha → slightly extended bright star
+_STAMP_BINS = [
+    (0.000, 0.007, _moffat_stamp( 3, alpha=0.70)),   # sub-pixel dim — almost single-pixel
+    (0.007, 0.035, _moffat_stamp( 5, alpha=0.80)),   # faint
+    (0.035, 0.140, _moffat_stamp( 7, alpha=0.90)),   # medium-faint
+    (0.140, 0.380, _moffat_stamp( 9, alpha=1.20)),   # medium
+    (0.380, 0.750, _moffat_stamp(13, alpha=1.80)),   # bright — slight halo
+    (0.750, 1.200, _moffat_stamp(19, alpha=3.00)),   # very bright — visible halo
+]
+
+
+def render_starfield_bg(ax, W, H, px, frame_idx, sky_events=None):
+    """
+    Photorealistic starfield via Moffat PSF stamps.
+
+    Each star is rendered by "stamping" a Moffat PSF kernel at its pixel position,
+    scaled by magnitude.  Moffat concentrates nearly all light in the center pixel
+    with sharp falloff — producing the crisp "sparkle" of real astrophotography.
+
+    No Gaussian blur smear. No blurry halos. Stars are sharp point sources.
+
+    Background: deep navy sky baked into the image (zorder=1.5, solid).
+    """
+    # Deep navy sky base — matches real dark-sky astrophotography background
+    # RGB(35,35,50)/255 ≈ (0.137,0.137,0.196) is the research-validated sky floor
+    # We use a slightly darker version matching our render_sky_atmosphere output
+    # ── Sky base — atmospheric gradient (not pure black) ─────────────────────
+    # Real night sky: zenith darker/bluer, horizon subtly lighter with airglow
+    rng_sky = np.random.default_rng(888)
+    img = np.empty((px, px, 3), dtype=np.float32)
+    # t=0 at bottom row (horizon), t=1 at top (zenith)
+    t_vert = np.linspace(0.0, 1.0, px, dtype=np.float32)
+    c_hor = np.array([0.022, 0.018, 0.092], dtype=np.float32)  # warm-blue horizon
+    c_zen = np.array([0.007, 0.009, 0.065], dtype=np.float32)  # deep indigo zenith
+    sky_grad = (c_hor[np.newaxis,:] * (1 - t_vert[:,np.newaxis]) +
+                c_zen[np.newaxis,:] * t_vert[:,np.newaxis])     # (px,3)
+    img[:] = sky_grad[:, np.newaxis, :]                         # broadcast → (px,px,3)
+    # Subtle large-scale atmospheric variation (airglow patches)
+    _sn = rng_sky.standard_normal((px//16, px//16)).astype(np.float32)
+    _sn = gaussian_filter(_sn, sigma=3)
+    _sn = (_sn - _sn.min()) / (_sn.max() - _sn.min() + 1e-8)
+    _sn_pil = Image.fromarray((_sn*255).astype(np.uint8)).resize((px,px), Image.BILINEAR)
+    _sn_full = np.array(_sn_pil, dtype=np.float32) / 255.0
+    vs = 0.005  # variation strength — very subtle
+    img[:,:,0] += _sn_full * vs * 0.5
+    img[:,:,1] += _sn_full * vs * 0.6
+    img[:,:,2] += _sn_full * vs * 1.2
+
+    # ── Milky Way: subtle brightening of the galactic band ────────────
+    # fBM noise at 1/8 scale → upscale → soft blur = diffuse cloud glow
+    rng_mw = np.random.default_rng(777)
+    mw_n = max(48, px // 8)
+    xs_m = np.arange(mw_n, dtype=np.float32)
+    ys_m = np.arange(mw_n, dtype=np.float32)
+    xg_m, yg_m = np.meshgrid(xs_m, ys_m)
+    bx_m = 0.48*mw_n + (xg_m - mw_n*0.5)*0.15
+    band_m = np.exp(-0.5*((yg_m - bx_m)/(mw_n*0.18))**2).astype(np.float32)
+    fbm = np.zeros((mw_n, mw_n), dtype=np.float32)
+    famp = 1.0
+    for fsig in [max(2,mw_n//3), max(2,mw_n//6), max(2,mw_n//12), 2]:
+        n_ = rng_mw.standard_normal((mw_n, mw_n)).astype(np.float32)
+        n_ = gaussian_filter(n_, sigma=fsig)
+        n_ -= n_.min(); n_ /= n_.max()-n_.min()+1e-8
+        fbm += famp*n_; famp *= 0.50
+    fbm -= fbm.min(); fbm /= fbm.max()+1e-8
+    mw_lo = gaussian_filter((band_m*(0.28+0.72*fbm)).astype(np.float32),
+                             sigma=max(2, mw_n//20))
+    mw_lo /= mw_lo.max()+1e-8
+    mw_pil = Image.fromarray((mw_lo*255).astype(np.uint8)).resize((px,px), Image.BILINEAR)
+    mw_full = gaussian_filter(np.array(mw_pil,dtype=np.float32)/255.0,
+                               sigma=max(4,int(px*0.012)))
+    mw_full /= mw_full.max()+1e-8
+    # Additive: brightens sky in band region, blue-violet tint
+    mw_add = 0.022
+    img[:,:,0] += mw_full * mw_add * 0.42
+    img[:,:,1] += mw_full * mw_add * 0.55
+    img[:,:,2] += mw_full * mw_add * 1.00
+
+    # ── Stars — count from P['bg_n'], seed=42 locked (absolute fixed positions every render) ──
+    rng_s = np.random.default_rng(42)
+    n_s = P['bg_n']
+    sx = rng_s.uniform(0, px, n_s).astype(np.float32)
+    sy = rng_s.uniform(0, px, n_s).astype(np.float32)
+
+    # Milky Way band density bias
+    band_at = np.exp(-0.5*((sy-(0.48*px+(sx-px*0.5)*0.15))/(px*0.17))**2)
+
+    # Power(0.10): original Moffat distribution — sharp crisp stars
+    mag = rng_s.power(0.10, n_s).astype(np.float32)
+    mag = np.clip(mag * (1.0 + 0.38*band_at), 0, 1.1).astype(np.float32)
+    # NO twinkling — all star positions and brightnesses locked per seed.
+    # (frame_idx kept in signature for API compatibility but unused here.)
+
+    # Spectral colors: O/B 2% | A 5% | F/G 15% | K 20% | M 58%
+    rv = rng_s.random(n_s).astype(np.float32)
+    star_r = np.select([rv<0.02,rv<0.07,rv<0.22,rv<0.42],[0.72,0.87,0.95,0.97],0.93).astype(np.float32)
+    star_g = np.select([rv<0.02,rv<0.07,rv<0.22,rv<0.42],[0.76,0.90,0.95,0.93],0.91).astype(np.float32)
+    star_b = np.select([rv<0.02,rv<0.07,rv<0.22,rv<0.42],[1.00,0.99,0.97,0.88],0.88).astype(np.float32)
+
+    xi = np.clip(sx.astype(int), 0, px-1)
+    yi = np.clip(sy.astype(int), 0, px-1)
+
+    # Sort dim→bright so bright stars overdraw dim ones correctly
+    order = np.argsort(mag)
+
+    # ── Atmospheric scintillation — sparse, position-locked ──────────────
+    # Real astrophysics: ~6 noticeable twinkle events/sec across whole field.
+    # Each event: smooth sine-wave brightness pulse over ~15 frames (~0.6s).
+    # Only brightness changes — star positions are absolutely fixed.
+    _TW_RATE   = 6.0   # twinkle events/sec visible across entire field
+    _TW_FRAMES = 15    # frames per event (~0.6s at 24fps)
+    _TW_AMP    = 0.35  # peak brightness variation (±35%)
+    _TW_FPS    = 24    # assumed fps for rate calculation
+    _tw_period = max(1, int(n_s / _TW_RATE * _TW_FPS))
+    _rng_tw = np.random.default_rng(54321)          # separate fixed seed
+    _tw_start = _rng_tw.integers(0, _tw_period, n_s)  # each star's event offset
+    _tw_raw   = (int(frame_idx) - _tw_start.astype(int)) % _tw_period
+    _tw_on    = _tw_raw < _TW_FRAMES
+    _tw_phase = np.where(_tw_on, _tw_raw / float(_TW_FRAMES), 0.0).astype(np.float32)
+    _tw_mult  = np.where(_tw_on,
+                         (1.0 + _TW_AMP * np.sin(np.pi * _tw_phase)),
+                         1.0).astype(np.float32)
+
+    for idx in order:
+        m = float(mag[idx]) * float(_tw_mult[idx])
+        if m < 0.004:
+            continue   # essentially invisible — skip
+
+        # Select Moffat stamp for this brightness tier
+        if   m < 0.007: lo,hi,stamp = _STAMP_BINS[0]
+        elif m < 0.035: lo,hi,stamp = _STAMP_BINS[1]
+        elif m < 0.140: lo,hi,stamp = _STAMP_BINS[2]
+        elif m < 0.380: lo,hi,stamp = _STAMP_BINS[3]
+        elif m < 0.750: lo,hi,stamp = _STAMP_BINS[4]
+        else:           lo,hi,stamp = _STAMP_BINS[5]
+
+        hw = stamp.shape[0] // 2
+        cx_, cy_ = int(xi[idx]), int(yi[idx])
+
+        # Clipped image bounds
+        iy0 = max(0, cy_-hw); iy1 = min(px, cy_+hw+1)
+        ix0 = max(0, cx_-hw); ix1 = min(px, cx_+hw+1)
+        # Corresponding stamp bounds
+        sy0 = iy0-(cy_-hw); sy1 = sy0+(iy1-iy0)
+        sx0 = ix0-(cx_-hw); sx1 = sx0+(ix1-ix0)
+
+        s = stamp[sy0:sy1, sx0:sx1] * m
+        img[iy0:iy1, ix0:ix1, 0] += s * float(star_r[idx])
+        img[iy0:iy1, ix0:ix1, 1] += s * float(star_g[idx])
+        img[iy0:iy1, ix0:ix1, 2] += s * float(star_b[idx])
+
+    # ── Sky phenomena ─────────────────────────────────────────────────────
+    if sky_events:
+        render_sky_events_to_img(img, px, frame_idx, sky_events)
+    np.clip(img, 0, 1, out=img)
+    ax.imshow(img, extent=[0,W,0,H], origin='lower',
+              aspect='auto', interpolation='bilinear', zorder=1.5)
+
+# ══════════════════════════════════════════════════════════════════
+# PIXEL-BUFFER STAR RENDERER — shared by soul stars & constellation stars
+# Same Moffat PSF approach as the background starfield.
+# ══════════════════════════════════════════════════════════════════
+
+def _star_to_buf(buf, cx_w, cy_w, W, H, r_val, g_val, b_val, m_norm,
+                 do_spikes=True, do_bloom=True):
+    """
+    Render a single star into RGBA pixel buffer `buf` using:
+      • Moffat PSF core stamp (same kernels as background starfield)
+      • Soft Gaussian color bloom (visible halo for bright stars)
+      • 6-point diffraction spikes (astrophotography style)
+
+    buf     : (px, px, 4) float32 RGBA — transparent background
+    cx_w/cy_w : world-coordinate position (0..W, 0..H)
+    r/g/b   : spectral RGB 0..1
+    m_norm  : brightness 0..1.5  (0.5=faint soul star, 1.0=bright, 1.3=very bright)
+    """
+    px = buf.shape[0]
+    cx_ = int(cx_w / W * px)
+    cy_ = int(cy_w / H * px)
+    if not (0 <= cx_ < px and 0 <= cy_ < px):
+        return
+
+    # ── Moffat PSF core ───────────────────────────────────────────
+    if   m_norm < 0.007: stamp = _STAMP_BINS[0][2]
+    elif m_norm < 0.035: stamp = _STAMP_BINS[1][2]
+    elif m_norm < 0.140: stamp = _STAMP_BINS[2][2]
+    elif m_norm < 0.380: stamp = _STAMP_BINS[3][2]
+    elif m_norm < 0.750: stamp = _STAMP_BINS[4][2]
+    else:                stamp = _STAMP_BINS[5][2]
+    hw = stamp.shape[0] // 2
+    iy0 = max(0, cy_-hw); iy1 = min(px, cy_+hw+1)
+    ix0 = max(0, cx_-hw); ix1 = min(px, cx_+hw+1)
+    sy0 = iy0-(cy_-hw); sy1 = sy0+(iy1-iy0)
+    sx0 = ix0-(cx_-hw); sx1 = sx0+(ix1-ix0)
+    s = stamp[sy0:sy1, sx0:sx1] * m_norm
+    buf[iy0:iy1, ix0:ix1, 0] += s * r_val
+    buf[iy0:iy1, ix0:ix1, 1] += s * g_val
+    buf[iy0:iy1, ix0:ix1, 2] += s * b_val
+    buf[iy0:iy1, ix0:ix1, 3] = np.maximum(buf[iy0:iy1, ix0:ix1, 3], s)
+
+    # ── Soft color bloom (spectral halo) ──────────────────────────
+    if do_bloom and m_norm >= 0.30:
+        bloom_r  = min(px // 5, max(6, int(m_norm * 55)))
+        bloom_sig = float(m_norm * 18.0)
+        cy_s = max(0, cy_ - bloom_r); cy_e = min(px, cy_ + bloom_r + 1)
+        cx_s = max(0, cx_ - bloom_r); cx_e = min(px, cx_ + bloom_r + 1)
+        yy, xx = np.ogrid[cy_s:cy_e, cx_s:cx_e]
+        dist2  = ((xx - cx_)**2 + (yy - cy_)**2).astype(np.float32)
+        bloom  = (m_norm * 0.38 * np.exp(-dist2 / (2.0 * bloom_sig**2))).astype(np.float32)
+        buf[cy_s:cy_e, cx_s:cx_e, 0] += bloom * r_val * 0.65
+        buf[cy_s:cy_e, cx_s:cx_e, 1] += bloom * g_val * 0.65
+        buf[cy_s:cy_e, cx_s:cx_e, 2] += bloom * b_val * 0.65
+        buf[cy_s:cy_e, cx_s:cx_e, 3]  = np.maximum(
+            buf[cy_s:cy_e, cx_s:cx_e, 3], bloom * 0.82)
+
+    # ── 6-point diffraction spikes ────────────────────────────────
+    if do_spikes and m_norm >= 0.28:
+        slen  = min(320, max(10, int(m_norm * 200)))
+        d_arr = np.arange(3, slen + 1, dtype=np.float32)
+        ivals = (m_norm * 0.18) * np.exp(-d_arr * 3.8 / float(slen))
+        for adeg in (0, 30, 60, 90, 120, 150):
+            rad_a = math.radians(adeg)
+            cdx = math.cos(rad_a); cdy = math.sin(rad_a)
+            for sign in (1, -1):
+                xsp = np.clip((cx_ + sign*cdx*d_arr + 0.5).astype(np.int32), 0, px-1)
+                ysp = np.clip((cy_ + sign*cdy*d_arr + 0.5).astype(np.int32), 0, px-1)
+                buf[ysp, xsp, 0] += ivals * r_val
+                buf[ysp, xsp, 1] += ivals * g_val
+                buf[ysp, xsp, 2] += ivals * b_val
+                buf[ysp, xsp, 3]  = np.maximum(buf[ysp, xsp, 3], ivals * 0.80)
+
 
 # ══════════════════════════════════════════════════════════════════
 # POSITION PRE-COMPUTATION
@@ -473,7 +1156,8 @@ def build_epoch(universe, intensities, ecology_pct, ecology_elements, ecology_po
 def render_frame(char, fixed_pos, pct, frame_idx, output_path,
                  fig_sz, dpi, ecology_positions,
                  W, H, bg_temp_curve, aurora_curve,
-                 ecology_elements, story_beats, lifecycle_label):
+                 ecology_elements, story_beats, lifecycle_label,
+                 sky_events=None):
     p = P; px = int(fig_sz*dpi)
     fig,ax = plt.subplots(figsize=(fig_sz,fig_sz),dpi=dpi)
     fig.patch.set_facecolor('#000000')
@@ -482,34 +1166,19 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
     ax.set_aspect('equal'); ax.axis('off')
     plt.subplots_adjust(0,0,1,1)
 
-    # ── Sky atmosphere (v28) ─────────────────────────────────────
-    render_sky_atmosphere(ax, pct, fig_sz, dpi, W, H, bg_temp_curve, aurora_curve)
+    # ── Sky atmosphere ───────────────────────────────────────────
+    aurora_surge_mult = 1.0
+    if sky_events:
+        for evt in sky_events:
+            if evt['type'] == 'aurora_surge' and evt['start_frame'] <= frame_idx <= evt['end_frame']:
+                dur = max(evt['end_frame'] - evt['start_frame'] + 1, 1)
+                phase = (frame_idx - evt['start_frame']) / max(dur-1, 1)
+                aurora_surge_mult = 1.0 + (evt['params']['peak_mult'] - 1.0) * math.sin(math.pi * phase)
+                break
+    render_sky_atmosphere(ax, pct, fig_sz, dpi, W, H, bg_temp_curve, aurora_curve, aurora_surge_mult)
 
-    # ── Background stars (fixed seed) ────────────────────────────
-    rng=np.random.default_rng(7)
-    n=int(p['bg_n'])
-    bx=rng.uniform(0,W,n); by=rng.uniform(0,H,n)
-    band=p['bg_band']*np.exp(-np.abs(by-(0.48*H+(bx-W*.5)*.12))**2/(2*(H*.20)**2))
-    raw=rng.power(0.35,n); s_pt=(0.03+raw*p['bg_maxr'])**2*1.25
-    rv=rng.random(n)
-    aalp=np.clip((0.06+0.94*raw)*p['bg_alpha']*(1+band*0.6),0.02,0.72)
-    BGPOPS=[('#d0d0e2',rv>=0.16),('#fff0c0',(rv>=0.06)&(rv<0.16)),
-            ('#90b4ff',(rv>=0.015)&(rv<0.06)),('#ffb088',rv<0.015)]
-    for ch,mask in BGPOPS:
-        if mask.any():
-            ax.scatter(bx[mask],by[mask],s=s_pt[mask],c=ch,
-                      alpha=float(aalp[mask].mean()*.50),linewidths=0,zorder=2)
-
-    rng_f=np.random.default_rng(391)
-    n_f=350; fx=rng_f.uniform(0,W,n_f); fy=rng_f.uniform(0,H,n_f)
-    fraw=rng_f.power(0.50,n_f); fsize=(0.8+fraw*3.2)**2*0.28
-    falpha=0.20+fraw*0.36; frv=rng_f.random(n_f)
-    FPOPS=[('#c8c8dc',frv>=0.20),('#f0e8b0',(frv>=0.06)&(frv<0.20)),
-           ('#8aaeff',(frv>=0.012)&(frv<0.06)),('#ffaa70',frv<0.012)]
-    for fc,fm in FPOPS:
-        if fm.any():
-            ax.scatter(fx[fm],fy[fm],s=fsize[fm],c=fc,
-                      alpha=float(falpha[fm].mean()),linewidths=0,zorder=2.6)
+    # ── Starfield (pixel-level Gaussian blobs) ───────────────────
+    render_starfield_bg(ax, W, H, px, frame_idx, sky_events)
 
     # ── Legacy stars — traces of what once mattered ───────────────
     draw_legacy_stars(ax, pct, fig_sz, W, ecology_elements, ecology_positions)
@@ -541,7 +1210,17 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
 
     # ── Full nebulae (≥6.0): fractal clouds ──────────────────────
     if char['nebs']:
-        neb=build_fractal_nebs(p,px,char['nebs'],W,H)
+        # ── Nebula breath ──
+        p_neb = p
+        if sky_events:
+            for evt in sky_events:
+                if evt['type'] == 'nebula_breath':
+                    dur = max(evt['end_frame'] - evt['start_frame'] + 1, 1)
+                    nb_phase = frame_idx / max(dur - 1, 1)
+                    breath = 1.0 + evt['params']['amplitude'] * math.sin(math.pi * nb_phase * 0.5)
+                    p_neb = dict(p); p_neb['neb_amax'] = min(1.0, p['neb_amax'] * breath)
+                    break
+        neb=build_fractal_nebs(p_neb,px,char['nebs'],W,H)
         ax.imshow(neb,extent=[0,W,0,H],origin='lower',
                   interpolation='bilinear',zorder=3,aspect='auto')
         for nd in char['nebs']:
@@ -550,16 +1229,8 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
                    ha='center',va='center',fontstyle='italic',fontweight='light',zorder=3.5,
                    path_effects=[pe.withStroke(linewidth=5.0,foreground=mk_col)])
 
-    # ── Bright bg stars pierce nebulae ────────────────────────────
-    thr=np.percentile(raw,82)
-    for ch,pm in BGPOPS:
-        m=(raw>=thr)&pm
-        if m.any():
-            ax.scatter(bx[m],by[m],s=s_pt[m]*2.0,c=ch,
-                      alpha=float(aalp[m].mean()*1.5),linewidths=0,zorder=6)
-
     # ── Constellations (FIXED cx,cy — no repulsion) ───────────────
-    soul_r=p['cn_soul_r']; reg_r=soul_r*0.60
+    soul_r=p['cn_soul_r']; reg_r=soul_r*0.38
     for const in char['constellations']:
         cx_c,cy_c = const['cx'],const['cy']   # FIXED, never repelled
         csx=const['sx']; csy=const['sy']
@@ -568,8 +1239,8 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
                 for name,((nx,ny),*_) in tmpl['stars'].items()}
         for sa,sb in tmpl['lines']:
             x1,y1=coords[sa]; x2,y2=coords[sb]
-            ax.plot([x1,x2],[y1,y2],'-',color='#8090c8',alpha=p['cl_alpha'],
-                   lw=1.0,solid_capstyle='round',zorder=4)
+            ax.plot([x1,x2],[y1,y2],'-',color='#a0b8e8',alpha=p['cl_alpha'],
+                   lw=1.8,solid_capstyle='round',zorder=4)
         cst_placed=[]
         for name,((nx,ny),mag,spec_col) in tmpl['stars'].items():
             sx_c,sy_c=coords[name]
