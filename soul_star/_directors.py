@@ -183,14 +183,31 @@ The soul star animation is a 1920×1080 cinematic composition:
   * Faint nebula blobs and aurora effects
   * Lens flares at the soul-panel junctions
 
-This is ITERATION {iteration} of AI director review. You are evaluating whether this
-looks like a $200M Hollywood sci-fi opening sequence.
+This is ITERATION {iteration} of AI director review.
+
+CRITICAL CONTEXT — READ BEFORE EVALUATING:
+This is NOT purely a cinema piece. The 1080×1080 center panel is the LIVE SCREEN of a
+mobile app. Users open this app on their phone or tablet while chatting, to see their own
+soul sky — updated in real-time as their emotional state changes.
+
+This means the visual must achieve TWO things simultaneously:
+  A. CINEMA QUALITY — stunning, otherworldly, worthy of a film frame
+  B. APP INTERFACE — readable labels, legible constellation lines, emotional clarity
+     at phone scale. A user must glance at their soul sky and immediately FEEL something
+     true about themselves. Clutter, illegible text, or muddy visuals = failure.
+
+Think of the Apple Watch face: beautiful AND instantly informative. Not one or the other.
+The nebulae are the user's emotional weather. The stars are specific people or forces in
+their life. The constellation connects them. ALL of this must be readable.
 
 EVALUATE:
-1. Nebulae density, contrast, color, and fractal complexity (engine: neb_* params)
-2. Background star field — depth, drama, Milky Way presence (engine: bg_*, cinema: depth_*)
-3. Overall cinematic atmosphere — color grading, lens flares, vignette (cinema: color_grade_*, lens_flare_*, vignette_*)
-4. The soul star glow and ray intensity (engine: sf_glow, sf_ray)
+1. Nebulae — do they fill the frame like real galactic clouds? Are colors emotionally distinct?
+   Are they large enough to feel immersive at phone scale? (engine: neb_* params)
+2. Background star field — depth and drama without overwhelming the narrative (engine: bg_*)
+3. Atmosphere — color grading, temperature, vignette — does the mood feel right? (cinema: color_grade_*, vignette_*)
+4. Soul star + constellation labels — are they READABLE? Do they tell the character's story?
+   (engine: sf_glow, sf_lsz, cn_soul_r, cn_reg_a)
+5. Overall: would a user open this app, see this sky, and feel instantly understood?
 
 CURRENT PARAMETER VALUES (YOUR FOCUS AREAS):
 

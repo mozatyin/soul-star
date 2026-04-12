@@ -31,13 +31,13 @@ REL_THRESH    = 7.5
 PAT_THRESH    = 7.0
 
 P = {
-    'bg_n':6880,   'bg_maxr':0.176, 'bg_alpha':0.554, 'bg_band':1.968,
-    'neb_gamma':2.902, 'neb_amax':0.817,  'neb_blur_k':0.100,
-    'neb_amult':18.329,   'neb_n_oct':4.474,  'neb_env_n':0.481,
-    'cl_alpha':0.537,
-    'sf_outer_r':0.420, 'sf_alpha':1.000, 'sf_lsz':14.0,
+    'bg_n':5892,   'bg_maxr':0.195, 'bg_alpha':0.303, 'bg_band':2.196,
+    'neb_gamma':2.902, 'neb_amax':0.817,  'neb_blur_k':0.152,
+    'neb_amult':10.229,   'neb_n_oct':4.079,  'neb_env_n':0.481,
+    'cl_alpha':0.396,
+    'sf_outer_r':0.420, 'sf_alpha':1.000, 'sf_lsz':3.5,
     'sf_glow':11.01, 'sf_ray':8.356,
-    'cn_soul_r':0.28, 'cn_soul_a':0.624, 'cn_reg_a':0.900,
+    'cn_soul_r':0.28, 'cn_soul_a':0.712, 'cn_reg_a':0.850,
 }
 
 TMPL = {
@@ -1395,7 +1395,9 @@ def render_frame(char, fixed_pos, pct, frame_idx, output_path,
               alpha=0.80,linewidths=0,zorder=11)
 
     output_path.parent.mkdir(parents=True,exist_ok=True)
-    fig.savefig(str(output_path),dpi=dpi,bbox_inches='tight',
+    # NOTE: do NOT use bbox_inches='tight' — it makes frame widths vary with text length,
+    # causing position jumps in the assembled video. Save at exact figsize×dpi instead.
+    fig.savefig(str(output_path),dpi=dpi,
                facecolor='black',edgecolor='none')
     plt.close(fig)
 
