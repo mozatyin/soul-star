@@ -167,11 +167,16 @@ SPEC = {
          'dk':'#060608','mk':'#303050','bk':'#8090c0','seed':605,'name':'牺牲之爱'},
     ],
     'relations': [
-        {'name':'赫敏',    'domain':2,'angle': 35,'color':'#c04030'},
-        {'name':'罗恩',    'domain':2,'angle':310,'color':'#e06020'},
-        {'name':'邓布利多','domain':1,'angle':200,'color':'#a0b0d0'},
-        {'name':'伏地魔',  'domain':3,'angle': 65,'color':'#30b050'},
-        {'name':'莉莉的爱','domain':4,'angle':145,'color':'#c0d0f0'},
+        {'name':'赫敏',    'domain':2,'angle': 35,'color':'#c04030',
+         'cosmos_type':'globular_cluster'},   # 密集有序，智识之群
+        {'name':'罗恩',    'domain':2,'angle':310,'color':'#e06020',
+         'cosmos_type':'meteor'},             # 来去闪烁，关键时刻登场
+        {'name':'邓布利多','domain':1,'angle':200,'color':'#a0b0d0',
+         'cosmos_type':'supernova'},          # 耀眼爆发，死后留下遗迹
+        {'name':'伏地魔',  'domain':3,'angle': 65,'color':'#30b050',
+         'cosmos_type':'comet'},              # 黑暗长尾，慢速横扫
+        {'name':'莉莉的爱','domain':4,'angle':145,'color':'#c0d0f0',
+         'cosmos_type':'grav_ripple'},        # 看不见但弯曲一切
     ],
     'patterns': [
         # 天蝎座 — 战士星座，力量与对抗（sx/sy ×1.4 更大更显眼）
@@ -200,27 +205,32 @@ SPEC = {
         'color': '#e8d040',
     },
     'ecology': [
-        # 海德薇 — 雪鸮，哈利最初的朋友，第七年死去
+        # 海德薇 — 雪鸮，稳定轨道直到消逝
         {'name':'海德薇',  'etype':'star','birth':0, 'death':58,
-         'curve':E_HEDWIG,   'color':'#f0f0ff','excl_r':2.5},
-        # 魂器 — 黑暗遗留物，横跨第四到第七年
+         'curve':E_HEDWIG,   'color':'#f0f0ff','excl_r':2.5,
+         'cosmos_type':'satellite'},          # 忠诚稳定轨道
+        # 魂器 — 黑暗蚕食，范围随时间扩张
         {'name':'魂器',    'etype':'neb', 'birth':35,'death':91,
          'curve':E_HORCRUX,
          'rx':4.0,'ry':2.5,'ang':15,
-         'dk':'#010804','mk':'#0a2810','bk':'#154020','seed':611,'excl_r':4.0},
-        # 多比 — 自由的家养小精灵，牺牲自己
+         'dk':'#010804','mk':'#0a2810','bk':'#154020','seed':611,'excl_r':4.0,
+         'cosmos_type':'dark_cloud'},         # 蚕食性暗云
+        # 多比 — 短暂色彩爆发，自由之光
         {'name':'多比',    'etype':'star','birth':28,'death':65,
-         'curve':E_DOBBY,    'color':'#d0c090','excl_r':2.5},
-        # 凤凰社 — 抵抗组织，活跃于第五至第七年
+         'curve':E_DOBBY,    'color':'#d0c090','excl_r':2.5,
+         'cosmos_type':'aurora_surge'},       # 极光爆发，消逝前最亮
+        # 凤凰社 — 集体魔法光芒
         {'name':'凤凰社',  'etype':'neb', 'birth':42,'death':70,
          'curve':E_PHOENIX_B,
          'rx':3.5,'ry':2.2,'ang':-8,
-         'dk':'#0a0400','mk':'#502008','bk':'#c04010','seed':612,'excl_r':3.8},
-        # 死亡圣器 — 三件圣器聚合，最终章
+         'dk':'#0a0400','mk':'#502008','bk':'#c04010','seed':612,'excl_r':3.8,
+         'cosmos_type':'aurora_surge'},       # 集体抵抗的光芒
+        # 死亡圣器 — 神秘脉动，第77%出现
         {'name':'死亡圣器','etype':'const','birth':77,'death':100,
          'curve':E_DEATHLY,'name_cn':'圣器之冠','tmpl':'crown',
          'sx':2.5,'sy':2.0,'soul':{'E':('老魔杖','#e0e0e0'),'B':('复活石','#909090')},
-         'excl_r':3.0},
+         'excl_r':3.0,
+         'cosmos_type':'variable_star'},      # 神秘脉动，忽明忽暗
     ],
 }
 
