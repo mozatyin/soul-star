@@ -234,7 +234,7 @@ def generate_cinema_soul_star(spec, output_dir, cinema_p=None, fps=24):
     return mp4_path
 
 
-def generate_cosmos_soul_star(spec, output_dir, cinema_p=None, fps=12):
+def generate_cosmos_soul_star(spec, output_dir, cinema_p=None, cosmos_p=None, fps=12):
     """
     Cosmos View: each relation/ecology renders as its assigned cosmic phenomenon
     instead of a generic star.  Domain nebulae are unchanged.
@@ -242,7 +242,7 @@ def generate_cosmos_soul_star(spec, output_dir, cinema_p=None, fps=12):
     Requires relations to have 'cosmos_type' field, ecology elements optionally
     have 'cosmos_type' (falls back to star if absent).
 
-    Parameters — identical to generate_cinema_soul_star.
+    Parameters — identical to generate_cinema_soul_star plus cosmos_p.
     Returns Path to .mp4 file.
     """
     import time as _time
@@ -314,6 +314,7 @@ def generate_cosmos_soul_star(spec, output_dir, cinema_p=None, fps=12):
             intensities=intensities,
             n_frames=N,
             spec=spec,
+            cosmos_p=cosmos_p,
         )
 
         bg_temp  = E.lerp(bg_temp_curve, pct)
@@ -340,7 +341,7 @@ def _render_cosmos_frame(char, fixed_pos, pct, frame_idx, output_path,
                          W, H, bg_temp_curve, aurora_curve,
                          ecology_elements, story_beats, lifecycle_label,
                          sky_events=None, universe=None, intensities=None,
-                         n_frames=60, spec=None):
+                         n_frames=60, spec=None, cosmos_p=None):
     """
     Cosmos frame: domain nebulae unchanged, relations/ecology rendered as
     their typed cosmic phenomena instead of generic stars.
@@ -420,7 +421,8 @@ def _render_cosmos_frame(char, fixed_pos, pct, frame_idx, output_path,
         seed = abs(hash(rel['name'])) % 99999
         COS.render_cosmos_element(
             ax, cx_r, cy_r, intensity, frame_idx, n_frames,
-            cosmos_type, rel['color'], seed, fig_sz, W, H
+            cosmos_type, rel['color'], seed, fig_sz, W, H,
+            cosmos_p=cosmos_p,
         )
         if intensity > 0.1:
             COS.cosmos_label(ax, cx_r, cy_r, rel['name'],
@@ -445,7 +447,8 @@ def _render_cosmos_frame(char, fixed_pos, pct, frame_idx, output_path,
         COS.render_cosmos_element(
             ax, cx_e, cy_e, intensity, frame_idx, n_frames,
             cosmos_type, el.get('color', el.get('bk', '#a0b0ff')),
-            seed, fig_sz, W, H
+            seed, fig_sz, W, H,
+            cosmos_p=cosmos_p,
         )
         if intensity > 0.1:
             COS.cosmos_label(ax, cx_e, cy_e, el['name'],

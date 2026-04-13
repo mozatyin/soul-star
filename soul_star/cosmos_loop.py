@@ -328,7 +328,7 @@ def run_cosmos_loop(
 
         t0 = time.time()
         mp4_path = generate_cosmos_soul_star(
-            render_spec, iter_dir, cinema_p=cinema_p, fps=12
+            render_spec, iter_dir, cinema_p=cinema_p, cosmos_p=cosmos_p, fps=12
         )
         print(f"  Rendered in {time.time()-t0:.1f}s → {mp4_path}")
 
@@ -395,7 +395,7 @@ def run_cosmos_loop(
     final_spec = dict(spec); final_spec['n_frames'] = 120
     t0 = time.time()
     final_mp4 = generate_cosmos_soul_star(
-        final_spec, final_dir, cinema_p=best_cinema_p, fps=12
+        final_spec, final_dir, cinema_p=best_cinema_p, cosmos_p=best_cosmos_p, fps=12
     )
     print(f"  Done in {time.time()-t0:.1f}s")
 
