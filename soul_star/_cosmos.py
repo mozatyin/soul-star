@@ -689,21 +689,22 @@ def _aurora_surge(ax, cx, cy, intensity, frame_idx, n_frames, color_hex, rng_see
     y_n = (Y - (cy - r_w)) / (2 * r_w)   # 0 = bottom, 1 = top
     y_above = (Y - cy) / r_w             # −1 → +1 (0 = element centre)
 
-    anim = frame_idx * 0.14
+    anim = frame_idx * 0.05   # slow drift — prevents strobing
 
-    # ── Triangle-wave curtain columns ─────────────────────────────────────────
-    def tri(freq, seed_off):
+    # ── Sinusoidal curtain columns (smooth, natural-looking) ──────────────────
+    # Sine waves instead of triangle waves: gradual oscillation, no harsh bands.
+    # Slow animation speed (0.05 per frame) prevents strobing.
+    def wave(freq, seed_off):
         scaled = x_n * freq + anim + seed_off
-        frac = scaled - np.floor(scaled)
-        return (2. * np.abs(frac - 0.5)).astype(np.float32)
+        return (0.5 + 0.5 * np.sin(2.0 * math.pi * scaled)).astype(np.float32)
 
-    curtain = (tri(2.5,  float(rng_seed) * 0.011)        * 0.50 +
-               tri(5.5,  float(rng_seed) * 0.017 + 1.30) * 0.30 +
-               tri(11.0, float(rng_seed) * 0.031 + 2.70) * 0.20)
+    curtain = (wave(1.8,  float(rng_seed) * 0.011)        * 0.50 +
+               wave(3.5,  float(rng_seed) * 0.017 + 1.30) * 0.30 +
+               wave(7.0,  float(rng_seed) * 0.031 + 2.70) * 0.20)
 
-    # ── Vertical profile: band above element centre ────────────────────────────
-    vert = (np.exp(-((y_above - 0.30) ** 2) / 0.22) *
-            np.clip(y_n * 4.0, 0., 1.)).astype(np.float32)
+    # ── Vertical profile: soft band above element centre ─────────────────────
+    vert = (np.exp(-((y_above - 0.30) ** 2) / 0.30) *
+            np.clip(y_n * 3.0, 0., 1.)).astype(np.float32)
 
     base = curtain * vert  # (N, N) brightness field
 
@@ -721,10 +722,10 @@ def _aurora_surge(ax, cx, cy, intensity, frame_idx, n_frames, color_hex, rng_see
     g_ch = (base * (green_col[1]*t_green + red_col[1]*t_red + blue_col[1]*t_blue) * intensity).astype(np.float32)
     b_ch = (base * (green_col[2]*t_green + red_col[2]*t_red + blue_col[2]*t_blue) * intensity).astype(np.float32)
 
-    # ── Gaussian blur for soft glow ───────────────────────────────────────────
-    buf[..., 0] = gaussian_filter(r_ch, sigma=2.0).astype(np.float32)
-    buf[..., 1] = gaussian_filter(g_ch, sigma=2.0).astype(np.float32)
-    buf[..., 2] = gaussian_filter(b_ch, sigma=2.0).astype(np.float32)
+    # ── Gaussian blur for soft glow (wider sigma = softer, more natural) ────────
+    buf[..., 0] = gaussian_filter(r_ch, sigma=3.5).astype(np.float32)
+    buf[..., 1] = gaussian_filter(g_ch, sigma=3.5).astype(np.float32)
+    buf[..., 2] = gaussian_filter(b_ch, sigma=3.5).astype(np.float32)
 
     _show(ax, buf, extent, zorder=4.5)
 

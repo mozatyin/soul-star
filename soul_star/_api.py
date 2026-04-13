@@ -404,6 +404,49 @@ def _render_cosmos_frame(char, fixed_pos, pct, frame_idx, output_path,
                     zorder=3.5,
                     path_effects=[pe.withStroke(linewidth=5.0, foreground=mk_col)])
 
+    # ── Constellation patterns + soul stars (faint background layer) ──────────
+    if universe and universe.get('patterns'):
+        from soul_star._engine import TMPL
+        for const in universe['patterns']:
+            tmpl_name = const.get('tmpl')
+            if tmpl_name not in TMPL:
+                continue
+            tmpl = TMPL[tmpl_name]
+            cx_c, cy_c = const['cx'], const['cy']
+            csx, csy = const['sx'], const['sy']
+            soul_annots = const.get('soul', {})
+            coords = {name: (cx_c + (nx - 0.5) * csx, cy_c + (ny - 0.5) * csy)
+                      for name, ((nx, ny), *_) in tmpl['stars'].items()}
+            # Connecting lines — very faint silver
+            for sa, sb in tmpl.get('lines', []):
+                if sa in coords and sb in coords:
+                    x1, y1 = coords[sa]; x2, y2 = coords[sb]
+                    ax.plot([x1, x2], [y1, y2], '-', color='#8090c0', alpha=0.15,
+                            lw=0.7, solid_capstyle='round', zorder=3.6)
+            # Stars
+            for name, ((nx, ny), mag, spec_col) in tmpl['stars'].items():
+                sx_c, sy_c = coords[name]
+                is_soul = name in soul_annots
+                if is_soul:
+                    lbl_txt, soul_col = soul_annots[name]
+                    E.draw_star_small(ax, sx_c, sy_c, 0.14, soul_col, 0.65,
+                                      fig_sz, z=3.8, W=W)
+                    ax.text(sx_c, sy_c + 0.28, lbl_txt, fontsize=7.5,
+                            color=soul_col, alpha=0.55, ha='center', va='bottom',
+                            fontstyle='italic', zorder=3.9,
+                            path_effects=[pe.withStroke(linewidth=2.0, foreground='#000000')])
+                else:
+                    E.draw_star_small(ax, sx_c, sy_c, 0.08, spec_col, 0.38,
+                                      fig_sz, z=3.6, W=W)
+            # Constellation name label
+            all_x = [v[0] for v in coords.values()]
+            all_y = [v[1] for v in coords.values()]
+            lbl_cx = sum(all_x) / len(all_x); lbl_cy = min(all_y)
+            ax.text(lbl_cx, lbl_cy - 0.4, const['name_cn'], fontsize=8.5,
+                    color='#4060a0', alpha=0.50, ha='center', va='top',
+                    fontweight='light', zorder=3.7,
+                    path_effects=[pe.withStroke(linewidth=2.0, foreground='#000000')])
+
     # ── COSMOS: relations as typed phenomena ─────────────────────────
     relations = universe['relations'] if universe else []
     rel_curves = spec.get('relation_curves', []) if spec else []

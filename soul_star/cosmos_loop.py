@@ -256,7 +256,7 @@ def _merge_cosmos_feedback(feedbacks, cinema_p, cosmos_p):
             new_cosmos[key] = 0.35 * cosmos_p.get(key, new_val) + 0.65 * new_val
 
     # Clamp values to reasonable ranges
-    new_cinema['bgDensity']        = max(0.3, min(3.5, new_cinema.get('bgDensity', 1.7)))
+    new_cinema['bgDensity']        = max(0.3, min(4.5, new_cinema.get('bgDensity', 1.7)))
     new_cinema['nebulaGamma']      = max(0.1, min(2.0, new_cinema.get('nebulaGamma', 0.49)))
     new_cinema['colorTemp']        = max(-1.0, min(1.0, new_cinema.get('colorTemp', -0.91)))
     new_cinema['vignette_strength']= max(0.0, min(1.0, new_cinema.get('vignette_strength', 0.84)))
@@ -264,7 +264,7 @@ def _merge_cosmos_feedback(feedbacks, cinema_p, cosmos_p):
                 'meteor_frequency', 'grav_ripple_mult', 'dark_cloud_opacity',
                 'aurora_mult', 'variable_star_amp', 'cosmos_glow_base']:
         if key in new_cosmos:
-            new_cosmos[key] = max(0.1, min(4.0, new_cosmos[key]))
+            new_cosmos[key] = max(0.1, min(6.0, new_cosmos[key]))
 
     return new_cinema, new_cosmos
 
@@ -279,6 +279,7 @@ def run_cosmos_loop(
     output_root='',
     min_improvement=0.10,
     plateau_rounds=3,
+    warm_start='',
 ):
     if api_key:
         os.environ['ANTHROPIC_API_KEY'] = api_key
@@ -302,6 +303,16 @@ def run_cosmos_loop(
 
     cinema_p = dict(CINEMA_P)
     cosmos_p = dict(COSMOS_P)
+
+    if warm_start and os.path.exists(warm_start):
+        with open(warm_start) as f:
+            warm = json.load(f)
+        if 'cinema_p' in warm:
+            cinema_p.update(warm['cinema_p'])
+        if 'cosmos_p' in warm:
+            cosmos_p.update(warm['cosmos_p'])
+        print(f"  [warm-start] Loaded params from {warm_start}")
+        print(f"  [warm-start] Starting score: {warm.get('best_score', '?')}")
 
     iteration_logs = []
     best_cinema_p = dict(cinema_p)
@@ -427,6 +438,8 @@ def main():
     parser.add_argument('--output',    type=str,   default='')
     parser.add_argument('--min-improvement', type=float, default=0.10)
     parser.add_argument('--plateau-rounds',  type=int,   default=3)
+    parser.add_argument('--warm-start',      type=str,   default='',
+                        help='Path to cosmos_best_params.json to seed starting params')
     args = parser.parse_args()
 
     run_cosmos_loop(
@@ -437,6 +450,7 @@ def main():
         output_root=args.output,
         min_improvement=args.min_improvement,
         plateau_rounds=args.plateau_rounds,
+        warm_start=args.warm_start,
     )
 
 
