@@ -249,10 +249,12 @@ def generate_cosmos_soul_star(spec, output_dir, cinema_p=None, cosmos_p=None, fp
     from . import _cinema as C
     from . import _cosmos as COS
     from . import _video as V
+    from .defaults import CINEMA_P_V9, COSMOS_P_V9
 
-    cp = {**C.CINEMA_P}
+    cp = {**CINEMA_P_V9}
     if cinema_p:
         cp.update(cinema_p)
+    cosmos_p = {**COSMOS_P_V9, **(cosmos_p or {})}
 
     out = Path(output_dir).expanduser()
     out.mkdir(parents=True, exist_ok=True)
@@ -464,13 +466,14 @@ def _render_cosmos_frame(char, fixed_pos, pct, frame_idx, output_path,
         raw_intensity = E.lerp(curve, pct)
         intensity = float(_np.clip(raw_intensity / 10.0, 0, 1))
         seed = abs(hash(rel['name'])) % 99999
-        COS.render_cosmos_element(
+        label_pos = COS.render_cosmos_element(
             ax, cx_r, cy_r, intensity, frame_idx, n_frames,
             cosmos_type, rel['color'], seed, fig_sz, W, H,
             cosmos_p=cosmos_p,
         )
         if intensity > 0.1:
-            COS.cosmos_label(ax, cx_r, cy_r, rel['name'],
+            lx, ly = (label_pos if label_pos is not None else (cx_r, cy_r))
+            COS.cosmos_label(ax, lx, ly, rel['name'],
                              rel['color'], cosmos_type, fig_sz, W, H)
 
     # ── COSMOS: ecology elements as typed phenomena ──────────────────

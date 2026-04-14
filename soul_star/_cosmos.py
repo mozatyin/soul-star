@@ -292,6 +292,7 @@ def _comet(ax, cx, cy, intensity, frame_idx, n_frames, color_hex, rng_seed, fig_
     buf[..., 2] += (nucleus * 0.78).astype(np.float32)
 
     _show(ax, buf, extent, zorder=6)
+    return hx, hy
 
 
 def _supernova(ax, cx, cy, intensity, frame_idx, n_frames, color_hex, rng_seed, fig_sz, W, H):
@@ -858,7 +859,10 @@ def render_cosmos_element(ax, cx, cy, intensity, frame_idx, n_frames,
                 freq_mult=freq)
     else:
         boosted = float(np.clip(intensity * mult * glow_base, 0., 1.))
-        fn(ax, cx, cy, boosted, frame_idx, n_frames, color_hex, rng_seed, fig_sz, W, H)
+        result = fn(ax, cx, cy, boosted, frame_idx, n_frames, color_hex, rng_seed, fig_sz, W, H)
+        if cosmos_type == 'comet' and result is not None:
+            return result  # (hx, hy) — actual comet head position this frame
+    return cx, cy
 
 
 def cosmos_label(ax, cx, cy, label, color_hex, cosmos_type, fig_sz, W, H):

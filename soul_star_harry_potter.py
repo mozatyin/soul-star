@@ -223,8 +223,8 @@ SPEC = {
         {'name':'凤凰社',  'etype':'neb', 'birth':42,'death':70,
          'curve':E_PHOENIX_B,
          'rx':3.5,'ry':2.2,'ang':-8,
-         'dk':'#0a0400','mk':'#502008','bk':'#c04010','seed':612,'excl_r':3.8,
-         'cosmos_type':'aurora_surge'},       # 集体抵抗的光芒
+         'dk':'#0a0400','mk':'#502008','bk':'#c04010','seed':612,'excl_r':3.8},
+         # cosmos_type removed — rendered as nebula only
         # 死亡圣器 — 神秘脉动，第77%出现
         {'name':'死亡圣器','etype':'const','birth':77,'death':100,
          'curve':E_DEATHLY,'name_cn':'圣器之冠','tmpl':'crown',
