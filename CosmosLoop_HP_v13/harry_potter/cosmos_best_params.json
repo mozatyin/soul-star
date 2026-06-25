@@ -1,0 +1,51 @@
+{
+  "best_score": 6.75,
+  "cinema_p": {
+    "cinema_w": 1920,
+    "cinema_h": 1080,
+    "soul_fig_sz": 10.8,
+    "depth_layers": 5,
+    "depth_star_counts": [
+      301,
+      170,
+      92,
+      40
+    ],
+    "depth_alphas": [
+      0.0548,
+      0.1148,
+      0.2227,
+      0.4805
+    ],
+    "depth_radii": [
+      0.583,
+      1.239,
+      2.252,
+      3.665
+    ],
+    "parallax_amp": 0.0,
+    "lens_flare_intensity": 0.504,
+    "vignette_strength": 0.8381702953460601,
+    "color_grade_temp": -0.029,
+    "color_grade_saturation": 1.164,
+    "side_nebula_alpha": 0.237,
+    "side_aurora_mult": 1.395,
+    "film_grain": 0.017,
+    "bgDensity": 4.107023524739583,
+    "nebulaGamma": 0.31345815207645344,
+    "colorTemp": -0.09065371109355495
+  },
+  "cosmos_p": {
+    "comet_mult": 6.0,
+    "supernova_mult": 5.455957795705039,
+    "globular_density": 6.0,
+    "meteor_frequency": 3.2955452003774184,
+    "grav_ripple_mult": 6.0,
+    "satellite_speed": 1.0,
+    "dark_cloud_opacity": 5.0384554231770835,
+    "aurora_mult": 3.03154578597688,
+    "variable_star_amp": 3.369402721685266,
+    "cosmos_glow_base": 0.8149809474219423,
+    "label_alpha": 0.72
+  }
+}

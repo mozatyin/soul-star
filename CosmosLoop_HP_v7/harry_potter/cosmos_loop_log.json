@@ -1,0 +1,562 @@
+[
+  {
+    "iteration": 1,
+    "avg_score": 6.1,
+    "cinema_p": {
+      "cinema_w": 1920,
+      "cinema_h": 1080,
+      "soul_fig_sz": 10.8,
+      "depth_layers": 5,
+      "depth_star_counts": [
+        301,
+        170,
+        92,
+        40
+      ],
+      "depth_alphas": [
+        0.0548,
+        0.1148,
+        0.2227,
+        0.4805
+      ],
+      "depth_radii": [
+        0.583,
+        1.239,
+        2.252,
+        3.665
+      ],
+      "parallax_amp": 0.0,
+      "lens_flare_intensity": 0.504,
+      "vignette_strength": 0.7586002879145707,
+      "color_grade_temp": -0.029,
+      "color_grade_saturation": 1.164,
+      "side_nebula_alpha": 0.237,
+      "side_aurora_mult": 1.395,
+      "film_grain": 0.017,
+      "bgDensity": 4.5,
+      "nebulaGamma": 0.36379322158589467,
+      "colorTemp": -0.08648477664508744
+    },
+    "cosmos_p": {
+      "comet_mult": 6.0,
+      "supernova_mult": 5.091757439127603,
+      "globular_density": 6.0,
+      "meteor_frequency": 3.536114763588838,
+      "grav_ripple_mult": 6.0,
+      "satellite_speed": 1.0,
+      "dark_cloud_opacity": 6.0,
+      "aurora_mult": 2.9867173968358656,
+      "variable_star_amp": 3.1708450451115096,
+      "cosmos_glow_base": 0.6516188637529776,
+      "label_alpha": 0.72
+    },
+    "feedbacks": [
+      {
+        "director": "George Lucas",
+        "score": 6.4,
+        "critique": "The cosmos has genuine mythic potential — the domain nebulae read as primal forces and the supernova ring for Dumbledore is architecturally compelling. However, several phenomena collapse into each other visually: the comet (Voldemort) is nearly invisible against the dark nebula, and the gravitational ripple (Lily) reads as a generic lens flare rather than an omnipresent invisible force bending spacetime. The progression across the three frames shows narrative evolution, but the first frame especially feels underpopulated — a living universe needs more simultaneous tension between its forces.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet barely registers as a distinct ominous presence — it needs a longer, sickly green-black tail that cuts across the frame like a scar, unmistakably THE dark force rather than a smudge lost in the dark cloud nebula.",
+          "supernova": "Dumbledore's supernova ring is the strongest element here — the expanding circle reads as both death and protection, though the interior glow could push whiter and more blinding to sell the moment of ultimate sacrifice.",
+          "globular_cluster": "Hermione's globular cluster near Leo reads as a faint pinkish smudge in frames 2-3 but lacks the dense, organized jewel-box quality that would telegraph intellect and precision — it needs tighter core concentration and cooler blue-white tones.",
+          "grav_ripple": "Lily's gravitational ripple is the biggest missed opportunity — it currently looks like a cross-shaped lens artifact rather than an invisible force warping the fabric of the entire cosmos; it should subtly distort stars and nebulae around it rather than present as a visible glyph."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 5.2,
+          "nebulaGamma": 0.42,
+          "colorTemp": -0.15,
+          "vignette_strength": 0.68
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 5.8,
+          "globular_density": 8.0,
+          "meteor_frequency": 3.5,
+          "grav_ripple_mult": 4.0,
+          "dark_cloud_opacity": 5.0,
+          "aurora_mult": 3.6,
+          "variable_star_amp": 2.5,
+          "cosmos_glow_base": 1.2
+        },
+        "key_issues": [
+          "Voldemort's comet and the dark cloud nebula are visually merging — the comet needs distinct geometry (sharp tail, poisonous hue) separated from the amorphous dark cloud so both archetypes read independently as 'active malice' vs 'creeping corruption'.",
+          "Lily's gravitational ripple must shift from a visible cross-shaped icon to an actual spatial distortion effect — warp the starfield and bend nearby nebula edges so the audience FEELS an invisible maternal force without seeing a symbol, which is narratively truer to protection magic that works precisely because it cannot be seen."
+        ]
+      },
+      {
+        "director": "Ridley Scott",
+        "score": 5.8,
+        "critique": "The cosmos has strong foundational composition — the nebula domains read well and the starfield has decent depth — but the phenomena themselves lack the visceral, photorealistic grandeur demanded of a $200M opening. The comet (Voldemort) is barely distinguishable from a generic green glow blob rather than a menacing dark-tailed body raking across the firmament; Dumbledore's supernova ring in the final frame is too clean and geometric, reading more like a UI element than an expanding shockwave of dying brilliance. The gravitational ripple around Lily is commendably subtle but has crossed the line into near-invisibility — it needs to distort the starfield behind it so the audience feels its presence without seeing a source.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet reads as a bright green-white teardrop parked in the mid-frame rather than a sweeping body with a sinister, elongated dust-and-ion tail cutting across the sky — it needs dramatic length, darker hue graduation from sickly green core to ashen grey tail, and a sense of threatening trajectory.",
+          "supernova": "Dumbledore's expanding ring in the third frame is geometrically perfect but emotionally sterile — a true supernova remnant should have filamentary wisps, asymmetric shock fronts, and a fading golden-white core that still radiates warmth even in death; the circle feels like clip art.",
+          "globular_cluster": "Hermione's globular cluster is the closest to working — the pink-red dense star swarm near Leo has texture and density — but it needs tighter central condensation and a warmer color gradient to distinguish organized intellect from generic nebula scatter.",
+          "grav_ripple": "Lily's gravitational ripple is essentially invisible; the concentric rings around the cross marker are too faint and too small — the ripple should subtly warp and lens the entire surrounding starfield in a wide radius, making the audience feel an unseen maternal force bending spacetime itself."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 5.2,
+          "nebulaGamma": 0.42,
+          "colorTemp": -0.15,
+          "vignette_strength": 0.85
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 7.0,
+          "globular_density": 7.5,
+          "meteor_frequency": 3.5,
+          "grav_ripple_mult": 9.0,
+          "dark_cloud_opacity": 7.5,
+          "aurora_mult": 3.8,
+          "variable_star_amp": 4.0,
+          "cosmos_glow_base": 1.2
+        },
+        "key_issues": [
+          "Voldemort's comet lacks a true elongated tail structure and menacing trajectory — it currently looks like a stationary luminous blob rather than a body in terrifying transit; needs tail length ×3, asymmetric ion/dust tail split, and darker green-to-grey color falloff",
+          "Dumbledore's supernova ring is too geometrically perfect and emotionally cold — replace the clean circle with filamentary, asymmetric expanding shock structure with warm golden-white interior glow fading outward, so it reads as a wise soul's final radiance rather than a HUD overlay",
+          "Lily's gravitational ripple is functionally absent at current parameters — it must produce visible lensing distortion across a wide radius (not just small concentric rings) so the audience senses an invisible protective force warping the cosmos around Harry without ever seeing the source directly",
+          "Dark cloud (Horcruxes) in the second frame is promising but needs more particulate structure and light-eating edges — currently it blends into the general darkness rather than feeling like an active corruption creeping into the starfield"
+        ]
+      },
+      {
+        "director": "Christopher Nolan",
+        "score": 5.8,
+        "critique": "The universe has genuine narrative bones — Dumbledore's supernova ring, the nebula domains, and the comet streak all register as distinct ideas — but the execution across the three frames reveals a chronic legibility crisis: at least four phenomena compete at similar luminance in the central band, collapsing into a murky glow rather than ten simultaneous, readable events. The progression from frame 1 (sparse, moody) to frame 3 (friendship and magic nebulae bloating to fill half the canvas) shows the domain nebulae are scaling unchecked, swallowing the character-phenomena that should be the emotional foreground. For a $200M opening shot, this needs the discipline of a deep-field Hubble image — every object at its own depth plane, no two phenomena fighting for the same color channel or screen real estate.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is barely visible — the green-tailed streak near 伏地魔 reads more like a small lens flare than a menacing, sky-spanning dark tail; it needs a longer, colder trail with desaturated green-to-black gradient and at least 2× its current screen arc to feel ominous.",
+          "supernova": "Dumbledore's expanding ring is the single best-realized element: the white core and grey circle in frames 2–3 read clearly as a post-detonation shockwave, but the ring's thin grey stroke lacks the luminous, almost holy radiance it needs — push the ring's emissive bloom and add a faint gold secondary halo.",
+          "globular_cluster": "Hermione's globular cluster near 赫敏 is lost in the pink nebula emission around Leo; the individual star points dissolve into the background — the cluster needs tighter star packing, a cooler blue-white palette distinct from the warm nebula behind it, and a slight structured symmetry to signal intellect.",
+          "grav_ripple": "Lily's gravitational ripple around 莉莉的爱 shows as concentric lens-distortion rings, which is conceptually perfect, but the effect is too localized and too faint in frame 1; by frame 3 it's invisible against the bright 牺牲之爱 nebula — the ripple should subtly warp stars across a much wider radius, felt everywhere rather than seen in one spot."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 3.8,
+          "nebulaGamma": 0.28,
+          "colorTemp": -0.15,
+          "vignette_strength": 0.82
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 9.0,
+          "supernova_mult": 6.5,
+          "globular_density": 8.5,
+          "meteor_frequency": 3.5,
+          "grav_ripple_mult": 10.0,
+          "dark_cloud_opacity": 4.5,
+          "aurora_mult": 2.2,
+          "variable_star_amp": 3.5,
+          "cosmos_glow_base": 0.35
+        },
+        "key_issues": [
+          "Domain nebulae (友谊之盾, 魔法天赋) scale too aggressively in later frames, occluding character-phenomena; cap nebula radius or drop nebulaGamma so they stay atmospheric backdrop, not foreground blobs.",
+          "Voldemort's comet and Lily's gravitational ripple — the two most narratively critical opposing forces — are the two least visible phenomena; the comet must dominate the upper-left-to-lower-right diagonal with a long dark tail, and the ripple must become a full-canvas subtle lens warp so the audience feels love bending everything without seeing a source.",
+          "Color-channel collision: the comet (green), Ron's meteor (green flash), and Dobby's aurora (green) all compete in the same hue band — shift the comet toward desaturated teal-black, keep aurora as warm green-magenta, and give Ron's meteor a warmer amber streak to separate them."
+        ]
+      },
+      {
+        "director": "Steve Jobs",
+        "score": 6.4,
+        "critique": "The cosmos has genuine emotional moments — Dumbledore's supernova ring and the gravitational ripple around Lily create a haunting center of gravity that pulls you in. But on a phone screen, several phenomena blur into each other: the comet reads as a generic green streak rather than something ominous, the dark clouds are invisible against the already-dark background, and Dobby's aurora at the top edge feels disconnected from the emotional core. The final frame (image 3) is the strongest — the friendship nebula blazing red and magic talent glowing amber finally give the cosmos real color drama — but we need that intensity across ALL phenomena, not just the domain nebulae.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet barely registers as threatening — it looks like a faint green smear near the lower-left rather than a dark, ominous presence sweeping across the sky; it needs a longer, colder tail with sickly green-black gradients that visibly intrudes on other regions.",
+          "supernova": "Dumbledore's expanding ring is elegant and the white core reads clearly in all three frames, but the ring itself is too thin and ghostly — at phone scale it looks like a UI element rather than a cosmic explosion frozen in time.",
+          "globular_cluster": "Hermione's cluster near Leo is charming in the close-up frame (image 2, pink-red dense swarm) but nearly invisible in the wide shot — the density multiplier is high yet the individual stars are too dim to convey the organized brilliance of her intellect.",
+          "grav_ripple": "Lily's gravitational ripple is the most narratively successful element — the subtle lens-distortion cross pattern at center feels like an invisible mother's hand bending spacetime around her son — but it could push slightly stronger so a casual viewer notices something uncanny is happening."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 3.8,
+          "nebulaGamma": 0.42,
+          "colorTemp": -0.15,
+          "vignette_strength": 0.82
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 6.2,
+          "globular_density": 8.0,
+          "meteor_frequency": 3.5,
+          "grav_ripple_mult": 7.5,
+          "dark_cloud_opacity": 8.0,
+          "aurora_mult": 4.2,
+          "variable_star_amp": 3.5,
+          "cosmos_glow_base": 1.3
+        },
+        "key_issues": [
+          "Voldemort's comet lacks menace — needs a longer, darker tail with sickly green luminance and visible encroachment into neighboring regions to feel like a threat sweeping through the cosmos",
+          "Dark cloud (Horcrux) phenomenon is essentially invisible against the background — reducing bgDensity while boosting dark_cloud_opacity should create visible voids that eat starlight, making the Horcruxes feel like wounds in the sky",
+          "Phone readability suffers because too many phenomena operate at similar low-brightness levels — we need sharper contrast hierarchy: Dumbledore supernova brightest, Lily ripple subtlest, everything else clearly tiered between"
+        ]
+      }
+    ]
+  },
+  {
+    "iteration": 2,
+    "avg_score": 6.8,
+    "cinema_p": {
+      "cinema_w": 1920,
+      "cinema_h": 1080,
+      "soul_fig_sz": 10.8,
+      "depth_layers": 5,
+      "depth_star_counts": [
+        301,
+        170,
+        92,
+        40
+      ],
+      "depth_alphas": [
+        0.0548,
+        0.1148,
+        0.2227,
+        0.4805
+      ],
+      "depth_radii": [
+        0.583,
+        1.239,
+        2.252,
+        3.665
+      ],
+      "parallax_amp": 0.0,
+      "lens_flare_intensity": 0.504,
+      "vignette_strength": 0.7783330174367663,
+      "color_grade_temp": -0.029,
+      "color_grade_saturation": 1.164,
+      "side_nebula_alpha": 0.237,
+      "side_aurora_mult": 1.395,
+      "film_grain": 0.017,
+      "bgDensity": 4.5,
+      "nebulaGamma": 0.3813692942217297,
+      "colorTemp": -0.12776967182578058
+    },
+    "cosmos_p": {
+      "comet_mult": 6.0,
+      "supernova_mult": 5.901490103694661,
+      "globular_density": 6.0,
+      "meteor_frequency": 3.512640167256093,
+      "grav_ripple_mult": 6.0,
+      "satellite_speed": 1.0,
+      "dark_cloud_opacity": 6.0,
+      "aurora_mult": 3.3393094222258854,
+      "variable_star_amp": 3.283233265789028,
+      "cosmos_glow_base": 0.9119207689802087,
+      "label_alpha": 0.72
+    },
+    "feedbacks": [
+      {
+        "director": "George Lucas",
+        "score": 7.2,
+        "critique": "The cosmos has evolved meaningfully from iteration 1 — the domain nebulae now read as distinct territories and the phenomena are beginning to assert archetypal weight. However, several phenomena have been cranked to maximum simultaneously, creating a 'everything at 11' problem where the mythic hierarchy flattens: Voldemort's comet should dominate its quadrant like Vader entering a room, but instead it competes with equally loud aurora, dark clouds, and ripple effects. The final frame (iteration 2 endpoint) achieves better narrative geography — friendship's red nebula and magic's amber nebula anchor left and right like opposing forces — but the central Dumbledore supernova ring reads more like a technical diagram than a dying god's last light.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is present as the green-white streak but lacks a proper dark, ominous tail — it reads as a hopeful shooting star rather than a creeping dread sweeping across the sky; it needs a longer, darker, more diffuse tail with sickly green-black coloring that contaminates whatever it passes.",
+          "supernova": "Dumbledore's supernova ring is geometrically clean and the central white point is appropriately brilliant, but the expanding ring feels sterile and clinical — it needs subtle warm golden filaments and asymmetric wisps to feel like the aftermath of a great soul's departure rather than a physics textbook illustration.",
+          "globular_cluster": "Hermione's globular cluster appears in the upper region as a pink-red dense swarm which is beautiful, but it reads more like an emission nebula than a tightly organized cluster of individual resolvable stars — the density is right but the individual stellar points need to be crisper and more structured, like a mind that organizes chaos.",
+          "grav_ripple": "Lily's gravitational ripple is the most successful phenomenon — the subtle concentric distortion rings around the central cross are nearly invisible yet unmistakably present, perfectly embodying a love that bends spacetime without being seen; maintain this restraint but let the ripple radius extend slightly further to touch more of the frame."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 3.8,
+          "nebulaGamma": 0.32,
+          "colorTemp": -0.08,
+          "vignette_strength": 0.85
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 7.5,
+          "supernova_mult": 5.2,
+          "globular_density": 5.0,
+          "meteor_frequency": 3.5,
+          "grav_ripple_mult": 6.8,
+          "dark_cloud_opacity": 4.5,
+          "aurora_mult": 2.6,
+          "variable_star_amp": 4.0,
+          "cosmos_glow_base": 0.45
+        },
+        "key_issues": [
+          "Voldemort's comet lacks archetypal menace — it needs a longer contaminating dark tail and sickly pallor, not a bright clean streak; the comet must feel like it poisons the sky it crosses, the way the Dark Lord poisons every institution he touches.",
+          "All phenomena are scaled near maximum simultaneously, collapsing the mythic hierarchy — Dumbledore's supernova and Lily's ripple should be the two gravitational anchors of the frame while aurora, dark clouds, and meteor play supporting roles at lower intensity; reduce aurora and dark cloud opacity so the primary archetypes breathe.",
+          "The background star field is slightly too dense at 4.5, creating visual noise that competes with the phenomena rather than serving as a quiet canvas — drop it to let the cosmic actors own their stage."
+        ]
+      },
+      {
+        "director": "Ridley Scott",
+        "score": 6.4,
+        "critique": "The cosmos has evolved meaningfully from iteration 1—Dumbledore's supernova ring reads cleanly, the domain nebulae have genuine atmospheric weight, and the final frame (iteration 2) achieves a brooding grandeur worthy of an opening shot. However, several phenomena have been cranked so high they bleed into each other, collapsing the spatial hierarchy: Voldemort's comet is barely distinguishable from the green aurora surge of Ron's meteor trail, Hermione's globular cluster is lost behind the nebula wash, and the dark clouds (Horcruxes) are either invisible or indistinguishable from the general vignette. This needs surgical restraint on overlapping green/teal elements and a dramatic separation pass to give each phenomenon its own pocket of sky.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet reads as a small green-white streak near lower-center—it needs a distinctly sickly chartreuse-to-black tail sweeping across a much wider arc to feel like a dread omen rather than a leftover particle effect.",
+          "supernova": "Dumbledore's expanding ring is the single best element: the clean circle with the white core in frame 2-3 is legible and emotionally correct, though it could benefit from a faint golden warmth in the ring edge to evoke phoenix fire.",
+          "globular_cluster": "Hermione's cluster appeared as a pink-red dense swarm only in frame 2 and vanished by frame 3—it must persist as a tightly resolved, warm-white jewel-box of individual stars, not a diffuse red smear that merges with the friendship nebula.",
+          "grav_ripple": "Lily's gravitational ripple is present as a subtle concentric distortion around the cross-shaped marker, which is conceptually perfect, but at current strength it's nearly imperceptible against the bright supernova and nebulae—it should subtly warp starfield geometry across a wider radius so the viewer feels it everywhere without seeing a source."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 5.2,
+          "nebulaGamma": 0.3,
+          "colorTemp": -0.05,
+          "vignette_strength": 0.85
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 5.5,
+          "globular_density": 8.0,
+          "meteor_frequency": 3.0,
+          "grav_ripple_mult": 8.0,
+          "dark_cloud_opacity": 7.5,
+          "aurora_mult": 2.2,
+          "variable_star_amp": 4.5,
+          "cosmos_glow_base": 0.6
+        },
+        "key_issues": [
+          "Green channel collision: comet, Ron's meteor, aurora surges, and the green nebula glow all occupy the same hue band—comet must shift toward sickly yellow-green with a dark trailing edge, aurora toward magenta-cyan, and Ron's meteor toward warm orange-white to break the monochrome green trap.",
+          "Hermione's globular cluster lacks persistence and resolution across frames; it should be rendered as hundreds of individually resolved warm-white pinpoints in a tight sphere, immune to nebula gamma washout, so it reads as organized intelligence even at thumbnail scale.",
+          "Dark cloud Horcruxes are functionally invisible—they need defined silhouette edges that visibly occlude background stars and nebulae, creating negative-space dread rather than just a tonal darkening that the vignette already provides."
+        ]
+      },
+      {
+        "director": "Christopher Nolan",
+        "score": 6.4,
+        "critique": "The iteration shows meaningful progress — Dumbledore's supernova ring is now legible, the friendship and magic domain nebulae have real presence, and the aurora bands at the top carry genuine spectral beauty. However, the frame is approaching a tipping point where multiple large-scale phenomena (the massive red friendship nebula, the orange magic nebula, the supernova ring, and the domain nebulae below) compete for dominance at similar scales, flattening the sense of depth hierarchy. Voldemort's comet has vanished entirely — the single most narratively critical antagonist force is absent from the final frame, which is a critical failure of storytelling.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is completely missing from the final frame — there is no dark ominous tail sweeping the sky, which strips the cosmos of its essential tension and menace.",
+          "supernova": "Dumbledore's expanding ring reads clearly as a supernova remnant with the bright core and circular boundary, though the ring could use slightly more luminous filament detail to feel like a true post-detonation shockwave rather than a simple geometric circle.",
+          "globular_cluster": "Hermione's globular cluster near the top-center shows the pink-red dense star swarm convincingly — it reads as organized, compact, and intellectually precise, which is correct, though it risks being visually absorbed by the enormous red friendship nebula directly behind it.",
+          "grav_ripple": "Lily's gravitational ripple around the cross-marker is subtle and pervasive, bending the local field convincingly, but in the final frame with so many competing large-scale glows, the ripple's quiet omnipresence is nearly lost — it needs to be felt more as a structural force shaping the entire canvas rather than a localized distortion."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 4.8,
+          "nebulaGamma": 0.32,
+          "colorTemp": -0.08,
+          "vignette_strength": 0.82
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 7.5,
+          "supernova_mult": 5.5,
+          "globular_density": 5.5,
+          "meteor_frequency": 3.0,
+          "grav_ripple_mult": 7.0,
+          "dark_cloud_opacity": 5.0,
+          "aurora_mult": 2.8,
+          "variable_star_amp": null,
+          "cosmos_glow_base": null
+        },
+        "key_issues": [
+          "Voldemort's comet is entirely absent from the final frame — the antagonist force must be visible as a dark-tailed streak cutting across the field, creating narrative tension against the protective elements",
+          "The friendship nebula and magic nebula have grown so large they flatten depth and compete with the supernova ring at the same visual scale — the domain nebulae need nebulaGamma pulled down slightly so they serve as atmospheric context rather than foreground objects, restoring the z-depth layering essential to a cinematic cosmos",
+          "Ron's meteor appears only as a faint diagonal streak in the lower-left of the final frame — it needs enough brightness and length to register as a sporadic but vivid event, not an afterthought",
+          "Lily's gravitational ripple should subtly warp starfield geometry across a wider radius to feel like the invisible force that literally saves Harry — currently it reads as a local lens flare rather than a cosmos-bending phenomenon"
+        ]
+      },
+      {
+        "director": "Steve Jobs",
+        "score": 7.2,
+        "critique": "The cosmos has evolved meaningfully from iteration 1 — the phenomena are more distinct and the narrative layers are starting to breathe. However, on a phone screen, several elements compete for attention simultaneously rather than creating a hierarchy that guides the eye naturally. The emotional journey from wonder to heartbreak is present but needs sharper contrast between light and dark zones to truly stop someone mid-scroll.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet (labeled 伏地魔) is frustratingly invisible in the final frame — it has disappeared entirely, robbing the cosmos of its ominous antagonist tension. It needs a longer, darker tail with sickly green threading visible even at phone scale.",
+          "supernova": "Dumbledore's expanding ring reads beautifully in frames 2-3 as a luminous circle with a dying core — this is the strongest phenomenon in the set and genuinely evokes the moment at the Astronomy Tower. The white-gold warmth is perfect.",
+          "globular_cluster": "Hermione's cluster appeared vividly in frame 2 as a dense pink-red star swarm but vanished by frame 3 — it needs persistent presence even as other phenomena grow, because her loyalty never wavers. The dense particle quality when visible is excellent.",
+          "grav_ripple": "Lily's gravitational ripple is the most disappointing element — labeled 莉莉的爱 with a cross-shaped lens flare, but the actual spacetime-bending distortion is barely perceptible. This should be the most haunting effect: subtle warping of stars around a center that feels like invisible arms protecting everything."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 3.8,
+          "nebulaGamma": 0.32,
+          "colorTemp": -0.08,
+          "vignette_strength": 0.85
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 5.9,
+          "globular_density": 7.0,
+          "meteor_frequency": 4.5,
+          "grav_ripple_mult": 9.0,
+          "dark_cloud_opacity": 5.0,
+          "aurora_mult": 2.8,
+          "variable_star_amp": 3.5,
+          "cosmos_glow_base": 1.2
+        },
+        "key_issues": [
+          "Voldemort's comet completely vanishes across frames — the antagonist force must persist as a dark streak with toxic-green luminescence at all zoom levels, or the cosmos loses its narrative tension",
+          "Lily's gravitational ripple reads as a static lens flare cross rather than actual spacetime distortion — implement concentric warping of background stars radiating outward from her position so it feels like invisible love bending reality itself",
+          "Phenomena appear and disappear between frames suggesting z-ordering or opacity conflicts — Hermione's cluster and Ron's meteor should remain visible even as domain nebulae expand, adjusting layering so character phenomena always render above ambient effects",
+          "Background star density is slightly too high for phone readability, creating noise that competes with the aurora and dark cloud effects — pulling bgDensity down to 3.80 will let each phenomenon own its space"
+        ]
+      }
+    ]
+  },
+  {
+    "iteration": 3,
+    "avg_score": 7.050000000000001,
+    "cinema_p": {
+      "cinema_w": 1920,
+      "cinema_h": 1080,
+      "soul_fig_sz": 10.8,
+      "depth_layers": 5,
+      "depth_star_counts": [
+        301,
+        170,
+        92,
+        40
+      ],
+      "depth_alphas": [
+        0.0548,
+        0.1148,
+        0.2227,
+        0.4805
+      ],
+      "depth_radii": [
+        0.583,
+        1.239,
+        2.252,
+        3.665
+      ],
+      "parallax_amp": 0.0,
+      "lens_flare_intensity": 0.504,
+      "vignette_strength": 0.8208540561028681,
+      "color_grade_temp": -0.029,
+      "color_grade_saturation": 1.164,
+      "side_nebula_alpha": 0.237,
+      "side_aurora_mult": 1.395,
+      "film_grain": 0.017,
+      "bgDensity": 4.388958333333333,
+      "nebulaGamma": 0.3385000863109387,
+      "colorTemp": -0.09225063513902321
+    },
+    "cosmos_p": {
+      "comet_mult": 6.0,
+      "supernova_mult": 5.663542369626464,
+      "globular_density": 6.0,
+      "meteor_frequency": 3.5518198918729653,
+      "grav_ripple_mult": 6.0,
+      "satellite_speed": 1.0,
+      "dark_cloud_opacity": 5.634374999999999,
+      "aurora_mult": 2.8641749644457266,
+      "variable_star_amp": 3.723473748289318,
+      "cosmos_glow_base": 0.8195012165114941,
+      "label_alpha": 0.72
+    },
+    "feedbacks": [
+      {
+        "director": "George Lucas",
+        "score": 7.2,
+        "critique": "The cosmos has matured into something genuinely mythic — the supernova ring around Dumbledore now reads as a death-halo of wisdom, and the friendship/magic domain nebulae have real archetypal weight. However, the comet (Voldemort) has vanished entirely by iteration 3, which is a critical narrative failure: the dark force must be FELT even after defeat, like a scar across the sky. The gravitational ripple for Lily is conceptually brilliant but remains too invisible — in a $200M opening shot, the audience needs to sense that invisible force bending starlight around it, not just trust the label.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is completely absent in the final frame — this is wrong; even in the epilogue '19 years later,' the scar still exists, so a fading spectral tail or ash-trail should linger as cosmic memory of the dark passage.",
+          "supernova": "Dumbledore's expanding supernova ring is the strongest element across all three iterations — it commands the center with the quiet authority of a teacher who chose his own death, though it could use a slightly warmer gold core to distinguish wisdom from mere brightness.",
+          "globular_cluster": "Hermione's cluster reads clearly as a dense organized swarm of intellect in iteration 2 but loses definition in iteration 3 as the friendship nebula swells over it — she must not be consumed by the group; her individuality IS the point.",
+          "grav_ripple": "Lily's gravitational ripple is the most faithful concept here but the least visually realized — the subtle lens-distortion rings around 莉莉的爱 need to warp surrounding starfields more aggressively so the audience feels protection without seeing a source."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 3.8,
+          "nebulaGamma": 0.42,
+          "colorTemp": -0.15,
+          "vignette_strength": 0.7
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 3.5,
+          "supernova_mult": 5.0,
+          "globular_density": 7.5,
+          "meteor_frequency": 1.8,
+          "grav_ripple_mult": 8.5,
+          "dark_cloud_opacity": 4.0,
+          "aurora_mult": 2.2,
+          "variable_star_amp": 2.5,
+          "cosmos_glow_base": 0.15
+        },
+        "key_issues": [
+          "Voldemort's comet has zero visual presence in iteration 3 — even as a faded ash-streak or spectral afterimage it must scar the sky; a myth without its villain's shadow is a fairy tale, not an epic",
+          "Lily's gravitational ripple needs dramatically stronger lensing distortion of surrounding stars — the audience should notice starlight bending around an empty center and feel the hair rise on their neck before they understand why"
+        ]
+      },
+      {
+        "director": "Ridley Scott",
+        "score": 6.4,
+        "critique": "The third iteration achieves impressive scale — the Dumbledore supernova ring now commands the frame with genuine gravitas, and the friendship/magic domain nebulae have grown into massive, painterly presences that feel like Hubble deep-field captures. However, the expansion has come at the cost of atmospheric tension: Voldemort's comet has vanished entirely, the dark cloud魂器 is absent, and the frame reads more like a warm, benevolent universe than a battlefield cosmos where light and darkness coexist. A $200M space opera needs dread as much as wonder.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is completely missing from iteration 3 — there is no dark tail, no ominous sweep; the primary antagonist of the narrative has been erased from the sky, which is a critical storytelling failure.",
+          "supernova": "The expanding ring around Dumbledore is now the strongest single element, its silver-white circle elegant and solemn, though at this scale it risks feeling geometric rather than explosive — it needs asymmetric filaments and a fading hot-blue core to sell the violence of a stellar death.",
+          "globular_cluster": "Hermione's globular cluster renders as a convincing pink-white stellar swarm with visible individual stars and a dense core — this is the most narratively accurate phenomenon in the frame, compact and brilliant without overwhelming its neighbors.",
+          "grav_ripple": "Lily's gravitational ripple remains too subtle to register cinematically; the concentric distortion around 莉莉的爱 reads as a lens artifact rather than an invisible protective force bending spacetime — it needs larger-radius wavefront arcs that visibly warp the star field behind them."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 5.2,
+          "nebulaGamma": 0.42,
+          "colorTemp": -0.18,
+          "vignette_strength": 0.88
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 5.0,
+          "globular_density": 6.0,
+          "meteor_frequency": 3.5,
+          "grav_ripple_mult": 8.0,
+          "dark_cloud_opacity": 7.5,
+          "aurora_mult": 2.2,
+          "variable_star_amp": 4.0,
+          "cosmos_glow_base": 0.6
+        },
+        "key_issues": [
+          "Voldemort comet and 魂器 dark clouds are completely absent in iteration 3 — without visible darkness the cosmos loses its moral tension and reads as purely benevolent, betraying the narrative",
+          "Gravitational ripple for Lily's love remains imperceptible at current amplitude — it must visibly distort the star field across a wide radius to convey the 'invisible force that protects everything' concept",
+          "Color temperature has drifted too warm overall — pulling cooler (-0.18) will restore the cold vacuum of space and let the warm phenomena (friendship nebula, phoenix aurora) contrast more dramatically against it",
+          "Variable star 死亡圣器 is not visible in any iteration — it should pulse with an eerie, irregular cadence near the frame edge to foreshadow the final act"
+        ]
+      },
+      {
+        "director": "Christopher Nolan",
+        "score": 7.2,
+        "critique": "Iteration 3 achieves genuine cinematic scale — the Dumbledore supernova ring commands the frame with appropriate gravitas, and the domain nebulae now read as distinct atmospheric zones rather than colored blobs. However, several phenomena have been scaled so aggressively that they collapse into each other: the comet (Voldemort) has vanished entirely by frame 3, the gravitational ripple is still invisible rather than subtly visible, and the friendship nebula bleeds into the supernova ring, muddying two of the most important narrative elements. The progression across the three frames tells a powerful story of expanding light overtaking darkness, but at the cost of individual phenomenon legibility — exactly the ten-simultaneous-things problem I care most about.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is present as the green-tailed streak in frame 1-2 but completely absent by frame 3 — narratively correct for his destruction, yet it needs a lingering dark residue or fading tail so the audience registers what was lost, not just what remains.",
+          "supernova": "Dumbledore's expanding ring is the single best element in this cosmos — the transition from bright core to enormous grey ring across iterations perfectly captures death-into-legacy, though by frame 3 the ring is so large it subsumes neighboring phenomena.",
+          "globular_cluster": "Hermione's cluster reads as a pink-red dense swarm in the upper region and carries the right intellectual density, but it's too small relative to the supernova and friendship nebula — her significance is being architecturally subordinated.",
+          "grav_ripple": "Lily's gravitational ripple is supposed to bend everything yet remain nearly invisible — currently it's entirely invisible, which is too literal; there should be a subtle lensing distortion around the central cross marker so the audience feels her protective force."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 3.8,
+          "nebulaGamma": 0.42,
+          "colorTemp": -0.04,
+          "vignette_strength": 0.7
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 4.5,
+          "supernova_mult": 4.2,
+          "globular_density": 7.5,
+          "meteor_frequency": 3.0,
+          "grav_ripple_mult": 8.0,
+          "dark_cloud_opacity": 4.8,
+          "aurora_mult": 2.4,
+          "variable_star_amp": 3.5,
+          "cosmos_glow_base": 0.15
+        },
+        "key_issues": [
+          "Supernova ring at ×5.66 has grown so dominant by frame 3 that it occludes the comet's former territory and merges with the friendship nebula — pull it back to ×4.20 and give the ring a sharper edge falloff so it reads as boundary, not flood.",
+          "Gravitational ripple at ×6.00 produces zero visible lensing — push to ×8.00 and ensure the shader actually distorts background stars in a 120px radius around the Lily marker; the audience must feel the bend even if they can't name it.",
+          "The Death Hallows variable star and Hedwig satellite are completely unreadable in all three frames — variable_star_amp needs boosting and the satellite needs a distinct thin orbital trail to separate it from ordinary background stars."
+        ]
+      },
+      {
+        "director": "Steve Jobs",
+        "score": 7.4,
+        "critique": "Iteration 3 has achieved genuine cinematic scale — the Dumbledore supernova ring is now commanding and iconic, the friendship and magic domain nebulae have real mass, and the overall composition reads as a living universe rather than a decorated star chart. However, on a phone screen several phenomena have merged into indistinct blobs: Voldemort's comet has vanished entirely (replaced by a faint green label with no visible tail), Ron's meteor is invisible, and the dark cloud horcruxes from iteration 2 have regressed to mere text labels. The frame is top-heavy with empty darkness and bottom-heavy with overlapping glows — a phone user's thumb zone gets the least interesting content.",
+        "phenomenon_notes": {
+          "comet": "Voldemort's comet is completely absent as a visual phenomenon — there is no ominous dark tail anywhere in the frame, just a green text label floating in void; this is the single biggest narrative failure across all three iterations.",
+          "supernova": "Dumbledore's expanding ring is the strongest element: the clean circle with the bright core reads as a dying star's last gift of light, and it anchors the composition beautifully — though at this scale it slightly crowds the friendship nebula.",
+          "globular_cluster": "Hermione's globular cluster in iteration 3 is rendered as a lovely pink-red star swarm with real particulate texture — finally legible and distinct — but it sits too close to the top edge and could use 10% more luminance to compete with the supernova.",
+          "grav_ripple": "Lily's gravitational ripple is the subtle concentric distortion around the cross marker — poetic in concept but almost invisible at phone scale; it needs a faint prismatic edge or a slight lensing warp of background stars to register emotionally without becoming overt."
+        },
+        "cinema_adjustments": {
+          "bgDensity": 5.0,
+          "nebulaGamma": 0.4,
+          "colorTemp": -0.05,
+          "vignette_strength": 0.7
+        },
+        "cosmos_adjustments": {
+          "comet_mult": 8.5,
+          "supernova_mult": 5.0,
+          "globular_density": 6.5,
+          "meteor_frequency": 4.0,
+          "grav_ripple_mult": 7.5,
+          "dark_cloud_opacity": 7.0,
+          "aurora_mult": 2.5,
+          "variable_star_amp": 3.5,
+          "cosmos_glow_base": 1.2
+        },
+        "key_issues": [
+          "Voldemort's comet is narratively critical and visually nonexistent — it must become a visible dark-tailed streak cutting across the lower-left quadrant with sickly green luminance at the head, legible even on a 6-inch screen",
+          "Ron's meteor and the horcrux dark clouds have regressed to invisible or text-only — every named phenomenon must have a distinct visual footprint, not just a label; raise meteor frequency and dark_cloud_opacity so a user can actually point and say 'that's Ron, those are horcruxes'",
+          "Lily's gravitational ripple needs a subtle but perceptible chromatic-aberration edge or star-field distortion ring — right now it registers only if you already know to look for it, which kills the emotional payoff on first glance"
+        ]
+      }
+    ]
+  }
+]
